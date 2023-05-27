@@ -6,11 +6,11 @@ namespace GoblinBarfight.Grids
     public class GridDisplay : MonoBehaviour
     {
         private Grid<GridObject> grid;
-        [SerializeField] private GameObject gridObjectPrefab;
+        [SerializeField] private GridObjectSettings settings;
 
         private void Start()
         {
-            GridObject.GridObjectPrefab = gridObjectPrefab;
+            GridObject.Settings = settings;
 
             grid = new Grid<GridObject>(9, 9, 1f, Vector2.one * -4.5f, GridObject.create);
         }

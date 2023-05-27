@@ -270,4 +270,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7dbaec0af33f28248854f374d5acc382, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridObjectPrefab: {fileID: 6942880228840863496, guid: 349e7bb2b1a67e34990fb629fc277c92, type: 3}
+  settings: {fileID: 11400000, guid: 1350112cde2d4e34ba7afad2a40f13ba, type: 2}
