@@ -24,6 +24,7 @@ namespace Grids
         private TGridObject[,] gridArray;
 
         private TextMeshPro[,] debugTextArray;
+        private bool drawDebugTextArray;
 
         public Grid(int width, int height, float cellSize, Vector3 originPosition, System.Func<Grid<TGridObject>, int, int, TGridObject> createGridObject)
         {
@@ -46,13 +47,19 @@ namespace Grids
             #endregion
 
             #region Draw Debug Text Array
-            debugTextArray = new TextMeshPro[width, height];
+            if (drawDebugTextArray)
+            {
+                debugTextArray = new TextMeshPro[width, height];
+            }
 
             for (int x = 0; x < gridArray.GetLength(0); x++)
             {
                 for (int y = 0; y < gridArray.GetLength(1); y++)
                 {
-                    debugTextArray[x, y] = GridUtils.CreateWorldText(gridArray[x, y]?.ToString(), null, GridToWorldPosition(x, y) + (Vector3)(0.5f * cellSize * Vector2.one));
+                    if (drawDebugTextArray)
+                    {
+                        debugTextArray[x, y] = GridUtils.CreateWorldText(gridArray[x, y]?.ToString(), null, GridToWorldPosition(x, y) + (Vector3)(0.5f * cellSize * Vector2.one));
+                    }
                     Debug.DrawLine(GridToWorldPosition(x, y), GridToWorldPosition(x, y + 1), Color.white, 100f);
                     Debug.DrawLine(GridToWorldPosition(x, y), GridToWorldPosition(x + 1, y), Color.white, 100f);
                 }
@@ -60,27 +67,34 @@ namespace Grids
             Debug.DrawLine(GridToWorldPosition(0, height), GridToWorldPosition(width, height), Color.white, 100f);
             Debug.DrawLine(GridToWorldPosition(width, 0), GridToWorldPosition(width, height), Color.white, 100f);
 
-            OnGridValueChanged += (object sender, OnGridValueChangedEventArgs eventArgs) =>
+            if (drawDebugTextArray)
             {
-                debugTextArray[eventArgs.x, eventArgs.y].text = gridArray[eventArgs.x, eventArgs.y]?.ToString();
-            };
+                OnGridValueChanged += (object sender, OnGridValueChangedEventArgs eventArgs) =>
+                {
+                    debugTextArray[eventArgs.x, eventArgs.y].text = gridArray[eventArgs.x, eventArgs.y]?.ToString();
+                };
+            }
             #endregion
         }
 
         #region Position Conversion Methods
-        private Vector3 GridToWorldPosition(int x, int y)
+        public Vector3 GridToWorldPosition(int x, int y, bool bottomLeft = true)
         {
-            return (new Vector3(x, y) * cellSize) + originPosition;
+            if (bottomLeft)
+            {
+                return (new Vector3(x, y) * cellSize) + originPosition;
+            }
+            return (new Vector3(x, y) * cellSize) + originPosition + (Vector3)(0.5f * cellSize * Vector2.one);
         }
 
-        private void WorldToGridPosition(Vector3 worldPosition, out int x, out int y)
+        public void WorldToGridPosition(Vector3 worldPosition, out int x, out int y)
         {
             worldPosition -= originPosition;
             x = Mathf.FloorToInt(worldPosition.x / cellSize);
             y = Mathf.FloorToInt(worldPosition.y / cellSize);
         }
 
-        private Vector2Int WorldToGridPosition (Vector3 worldPosition)
+        public Vector2Int WorldToGridPosition(Vector3 worldPosition)
         {
             WorldToGridPosition(worldPosition, out int x, out int y);
             return new Vector2Int(x, y);
@@ -93,7 +107,6 @@ namespace Grids
             if (x >= 0 && x < width && y >= 0 && y < height)
             {
                 gridArray[x, y] = value;
-                debugTextArray[x, y].text = value.ToString();
             }
 
             if (OnGridValueChanged != null) { OnGridValueChanged(this, new OnGridValueChangedEventArgs { x = x, y = y }); }
