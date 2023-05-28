@@ -26,7 +26,7 @@ namespace GoblinBarfight.Grids
                         transform.position,
                         targetPosition,
                         ref velocity,
-                        0.1f
+                        0.04f
                     );
                 }
                 else
