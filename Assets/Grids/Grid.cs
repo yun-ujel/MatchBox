@@ -14,9 +14,8 @@ namespace Grids
             public int y;
         }
 
-
-        private int width;
-        private int height;
+        public int Width { get; private set; }
+        public int Height { get; private set; }
 
         private Vector3 originPosition;
         private float cellSize;
@@ -28,8 +27,8 @@ namespace Grids
 
         public Grid(int width, int height, float cellSize, Vector3 originPosition, System.Func<Grid<TGridObject>, int, int, TGridObject> createGridObject)
         {
-            this.width = width;
-            this.height = height;
+            Width = width;
+            Height = height;
 
             this.originPosition = originPosition;
             this.cellSize = cellSize;
@@ -104,7 +103,7 @@ namespace Grids
         #region Set Methods
         public void SetObject(int x, int y, TGridObject value)
         {
-            if (x >= 0 && x < width && y >= 0 && y < height)
+            if (x >= 0 && x < Width && y >= 0 && y < Height)
             {
                 gridArray[x, y] = value;
             }
@@ -124,12 +123,17 @@ namespace Grids
         #region Get Methods
         public TGridObject GetObject(int x, int y)
         {
-            if (x >= 0 && x < width && y >= 0 && y < height)
+            if (x >= 0 && x < Width && y >= 0 && y < Height)
             {
                 return gridArray[x, y];
             }
 
             return default;
+        }
+
+        public TGridObject GetObject(Vector2Int position)
+        {
+            return GetObject(position.x, position.y);
         }
 
         public TGridObject GetObject(Vector3 worldPosition)

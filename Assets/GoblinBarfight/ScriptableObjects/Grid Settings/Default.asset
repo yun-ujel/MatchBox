@@ -24,3 +24,5 @@ MonoBehaviour:
     <Color>k__BackingField: {r: 0.39999998, g: 0.39999998, b: 1, a: 1}
   - <Name>k__BackingField: Pink
     <Color>k__BackingField: {r: 1, g: 0.39999998, b: 0.7999999, a: 1}
+  <aSprite>k__BackingField: {fileID: 21300000, guid: 9aa0e9fbd35473646919fb465eaaea01, type: 3}
+  <bSprite>k__BackingField: {fileID: 21300000, guid: de060b13f4fb41c4090ad824393ad8aa, type: 3}

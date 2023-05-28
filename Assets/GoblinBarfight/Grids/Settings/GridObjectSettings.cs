@@ -7,5 +7,8 @@ namespace GoblinBarfight.Grids
     {
         [field: SerializeField] public GameObject GridObjectPrefab { get; set; }
         public GridObjectType[] types;
+
+        [field: SerializeField] public Sprite aSprite { get; set; }
+        [field: SerializeField] public Sprite bSprite { get; set; }
     }
 }

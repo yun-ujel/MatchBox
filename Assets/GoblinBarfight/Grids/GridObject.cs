@@ -80,7 +80,7 @@ namespace GoblinBarfight.Grids
         }
 
         #region Parent Reference Methods
-        public void SetType(GridObjectType type)
+        private void SetType(GridObjectType type)
         {
             Type = type;
 
@@ -92,9 +92,185 @@ namespace GoblinBarfight.Grids
             parent.MoveToPosition(grid.GridToWorldPosition(x, y, false));
             parent.gameObject.name = $"( {x}, {y} )";
 
+            GridObject[] matches = FindMatches(x, y);
+            if (matches.Length > 0)
+            {
+                SetSprite(false);
+                for (int i = 0; i < matches.Length; i++)
+                {
+                    matches[i].SetSprite(false);
+                }
+            }
+
             this.x = x;
             this.y = y;
         }
+
+        public void SetSprite(bool a)
+        {
+            if (a)
+            {
+                parent.GetComponent<SpriteRenderer>().sprite = Settings.aSprite;
+                return;
+            }
+            parent.GetComponent<SpriteRenderer>().sprite = Settings.bSprite;
+        }
         #endregion
+
+        /*private bool IsMatchInAxis(int axis, int x, int y)
+        {
+            if (axis > 1 || axis < 0)
+            {
+                return false;
+            }
+
+            int counter = 0;
+            #region Check X Axis
+            if (axis == 0)
+            {
+                for (int i = -2; i < 3; i++)
+                {
+                    if (counter > 1)
+                    {
+                        break;
+                    }
+                    if (i == 0)
+                    {
+                        continue;
+                    }
+
+                    if (grid.GetObject(x + i, y) == null)
+                    {
+                        counter = 0;
+                        continue;
+                    }
+                    else if (grid.GetObject(x + i, y).Type == Type)
+                    {
+                        counter++;
+                        continue;
+                    }
+                    counter = 0;
+                }
+
+                return counter > 1;
+            }
+            #endregion
+            #region Check Y Axis
+            for (int i = -2; i < 3; i++)
+            {
+                if (counter > 1)
+                {
+                    break;
+                }
+                if (i == 0)
+                {
+                    continue;
+                }
+
+                if (grid.GetObject(x, y + i) == null)
+                {
+                    counter = 0;
+                    continue;
+                }
+                else if (grid.GetObject(x, y + i).Type == Type)
+                {
+                    counter++;
+                    continue;
+                }
+                counter = 0;
+            }
+
+            return counter > 1;
+            #endregion
+        }
+        */
+
+        public GridObject[] FindMatches(int x, int y)
+        {
+            List<GridObject> match3Objects = new List<GridObject>();
+            List<Vector2Int> matchingObjectPositions = new List<Vector2Int>();
+
+            GridObject gridObject;
+
+            #region Check X Axis
+            for (int i = -2; i < 3; i++)
+            {
+                gridObject = grid.GetObject(x + i, y);
+
+                if (i == 0)
+                {
+                    continue;
+                }
+
+                if (gridObject == null || gridObject.Type != Type)
+                {
+                    if (matchingObjectPositions.Count >= 2)
+                    {
+                        for (int o = 0; o < matchingObjectPositions.Count; o++)
+                        {
+                            match3Objects.Add(grid.GetObject(matchingObjectPositions[o]));
+                        }
+                    }
+                    matchingObjectPositions.Clear();
+                    continue;
+                }
+                else if (gridObject.Type == Type)
+                {
+                    matchingObjectPositions.Add(new Vector2Int(x + i, y));
+                    continue;
+                }
+            }
+
+            if (matchingObjectPositions.Count >= 2)
+            {
+                for (int o = 0; o < matchingObjectPositions.Count; o++)
+                {
+                    match3Objects.Add(grid.GetObject(matchingObjectPositions[o]));
+                }
+            }
+            #endregion
+
+            matchingObjectPositions.Clear();
+
+            #region Check Y Axis
+            for (int i = -2; i < 3; i++)
+            {
+                gridObject = grid.GetObject(x, y + i);
+
+                if (i == 0)
+                {
+                    continue;
+                }
+
+                if (gridObject == null || gridObject.Type != Type)
+                {
+                    if (matchingObjectPositions.Count >= 2)
+                    {
+                        for (int o = 0; o < matchingObjectPositions.Count; o++)
+                        {
+                            match3Objects.Add(grid.GetObject(matchingObjectPositions[o]));
+                        }
+                    }
+                    matchingObjectPositions.Clear();
+                    continue;
+                }
+                else if (gridObject.Type == Type)
+                {
+                    matchingObjectPositions.Add(new Vector2Int(x, y + i));
+                    continue;
+                }
+            }
+
+            if (matchingObjectPositions.Count >= 2)
+            {
+                for (int o = 0; o < matchingObjectPositions.Count; o++)
+                {
+                    match3Objects.Add(grid.GetObject(matchingObjectPositions[o]));
+                }
+            }
+            #endregion
+
+            return match3Objects.ToArray();
+        }
     }
 }
