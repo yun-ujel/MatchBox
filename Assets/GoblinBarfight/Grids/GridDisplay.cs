@@ -1,9 +1,12 @@
 using UnityEngine;
 using Grids;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 namespace GoblinBarfight.Grids
 {
+    using Utilities;
+
     public class GridDisplay : MonoBehaviour
     {
         #region Parameters
@@ -38,6 +41,18 @@ namespace GoblinBarfight.Grids
             if (mouseDown && Mouse.current.leftButton.wasReleasedThisFrame)
             {
                 TriggerMouseReleased(MiscUtils.GetMouseWorldPosition());
+            }
+
+            if (Mouse.current.rightButton.wasPressedThisFrame)
+            {
+                grid.WorldToGridPosition(MiscUtils.GetMouseWorldPosition(), out int x, out int y);
+
+                List<GridObjectType> types = grid.FindTypesThatWouldMatchInAxis(0, x, y, settings.RequiredObjectsForMatch);
+                types.AddRange(grid.FindTypesThatWouldMatchInAxis(1, x, y, settings.RequiredObjectsForMatch));
+                for (int i = 0; i < types.Count; i++)
+                {
+                    Debug.Log($"GridDisplay: Type that would match at position ( {x}, {y} ): {types[i]?.Name}");
+                }
             }
         }
 

@@ -16,16 +16,16 @@ MonoBehaviour:
   types:
   - <Name>k__BackingField: Red
     <Color>k__BackingField: {r: 1, g: 0.39999998, b: 0.39999998, a: 1}
-  - <Name>k__BackingField: Orange
-    <Color>k__BackingField: {r: 1, g: 0.85, b: 0.39999998, a: 1}
-  - <Name>k__BackingField: Lime
-    <Color>k__BackingField: {r: 0.7, g: 1, b: 0.39999998, a: 1}
-  - <Name>k__BackingField: Gray
-    <Color>k__BackingField: {r: 0.90099996, g: 0.90099996, b: 0.90099996, a: 1}
+  - <Name>k__BackingField: Yellow
+    <Color>k__BackingField: {r: 1, g: 0.94, b: 0.39999998, a: 1}
+  - <Name>k__BackingField: Green
+    <Color>k__BackingField: {r: 0.5199999, g: 1, b: 0.39999998, a: 1}
+  - <Name>k__BackingField: Teal
+    <Color>k__BackingField: {r: 0.39999998, g: 1, b: 0.8199999, a: 1}
   - <Name>k__BackingField: Blue
-    <Color>k__BackingField: {r: 0.39999998, g: 0.54999995, b: 1, a: 1}
+    <Color>k__BackingField: {r: 0.39999998, g: 0.39999998, b: 1, a: 1}
   - <Name>k__BackingField: Pink
-    <Color>k__BackingField: {r: 1, g: 0.39999998, b: 0.85, a: 1}
+    <Color>k__BackingField: {r: 1, g: 0.39999998, b: 0.7600002, a: 1}
   <RequiredObjectsForMatch>k__BackingField: 3
   <aSprite>k__BackingField: {fileID: 21300000, guid: 9aa0e9fbd35473646919fb465eaaea01, type: 3}
   <bSprite>k__BackingField: {fileID: 21300000, guid: de060b13f4fb41c4090ad824393ad8aa, type: 3}

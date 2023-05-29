@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace GoblinBarfight.Grids
 {
+    using Utilities;
     public class GridObject
     {
         #region Parameters
@@ -22,6 +23,7 @@ namespace GoblinBarfight.Grids
         private GridObjectBehaviour parent;
 
         public GridObjectType Type { get; private set; }
+        public bool IsMatched { get; private set; }
 
         #endregion
         public GridObject(Grid<GridObject> grid, int x, int y)
@@ -35,11 +37,17 @@ namespace GoblinBarfight.Grids
 
             parent = gameObject.GetComponent<GridObjectBehaviour>();
 
-            SetType(CalculateParentType(grid, x, y));
+            SetType(CalculateParentType(grid, x, y, out bool failed));
+            IsMatched = failed;
         }
 
-        private GridObjectType CalculateParentType(Grid<GridObject> grid, int x, int y)
+        #region Parent Reference Methods
+
+        #region Type
+        private GridObjectType CalculateParentType(Grid<GridObject> grid, int x, int y, out bool failedToAvoidMatch)
         {
+            failedToAvoidMatch = false;
+
             List<GridObjectType> validTypes = new List<GridObjectType>(Settings.types);
             bool allTypesValid = true;
 
@@ -50,7 +58,7 @@ namespace GoblinBarfight.Grids
                 bool typeValid = false;
                 for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < 0; i++)
                 {
-                    if (!IsGridObjectOfType(grid.GetObject(x + i, y), initialType))
+                    if (!GridObjectUtils.IsGridObjectOfType(grid.GetObject(x + i, y), initialType))
                     {
                         typeValid = true;
                         break;
@@ -70,7 +78,7 @@ namespace GoblinBarfight.Grids
                 bool typeValid = false;
                 for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < -1; i++)
                 {
-                    if (!IsGridObjectOfType(grid.GetObject(x, y + i), initialType))
+                    if (!GridObjectUtils.IsGridObjectOfType(grid.GetObject(x, y + i), initialType))
                     {
                         typeValid = true;
                         break;
@@ -86,6 +94,12 @@ namespace GoblinBarfight.Grids
             #endregion
 
             #region Select Type
+            if (validTypes.Count < 1)
+            {
+                failedToAvoidMatch = true;
+                return Settings.types[0];
+            }
+
             int selection = Random.Range(0, Settings.types.Length);
 
             if (allTypesValid)
@@ -98,24 +112,24 @@ namespace GoblinBarfight.Grids
             return validTypes[selection];
             #endregion
         }
-
-        #region Parent Reference Methods
         private void SetType(GridObjectType type)
         {
-            this.Type = type;
+            Type = type;
 
             parent.GetComponent<SpriteRenderer>().color = type.Color;
         }
+        #endregion
 
+        #region Interaction
         public void MoveToPosition(int x, int y)
         {
             parent.MoveToPosition(grid.GridToWorldPosition(x, y, false));
             parent.gameObject.name = $"( {x}, {y} )";
-
-            _ = FindMatches(x, y, Type, out GridObject[] matches);
             
-            if (matches.Length > 0)
+            if (FindMatches(x, y, Type, out GridObject[] matches))
             {
+                IsMatched = true;
+
                 SetSprite(false);
                 for (int i = 0; i < matches.Length; i++)
                 {
@@ -126,7 +140,9 @@ namespace GoblinBarfight.Grids
             this.x = x;
             this.y = y;
         }
+        #endregion
 
+        #region Visuals
         public void SetSprite(bool a)
         {
             if (a)
@@ -138,12 +154,13 @@ namespace GoblinBarfight.Grids
         }
         #endregion
 
-        #region Utility Methods
+        #endregion
+
         public bool FindMatches(int x, int y, GridObjectType type, out GridObject[] matchingObjects)
         {
             List<GridObject> matchingObjectsList = new List<GridObject>();
-            matchingObjectsList.AddRange(FindMatchesInAxis(0, x, y, type));
-            matchingObjectsList.AddRange(FindMatchesInAxis(1, x, y, type));
+            matchingObjectsList.AddRange(grid.FindMatchesInAxis(0, x, y, type, Settings.RequiredObjectsForMatch));
+            matchingObjectsList.AddRange(grid.FindMatchesInAxis(1, x, y, type, Settings.RequiredObjectsForMatch));
 
             matchingObjects = matchingObjectsList.ToArray();
 
@@ -154,63 +171,5 @@ namespace GoblinBarfight.Grids
 
             return false;
         }
-
-        private GridObject[] FindMatchesInAxis(int axis, int x, int y, GridObjectType type)
-        {
-            #region Set Multipliers
-            int xMultiplier = 0;
-            int yMultiplier = 0;
-            if (axis == 0) { xMultiplier = 1; }
-            else if (axis == 1) { yMultiplier = 1; }
-            #endregion
-
-            List<GridObject> match3Objects = new List<GridObject>();
-            List<Vector2Int> matchingObjectPositions = new List<Vector2Int>();
-
-            GridObject gridObject;
-
-            for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < Settings.RequiredObjectsForMatch; i++)
-            {
-                gridObject = grid.GetObject(x + (i * xMultiplier), y + (i * yMultiplier));
-
-                if (!IsGridObjectOfType(gridObject, type))
-                {
-                    if (matchingObjectPositions.Count >= Settings.RequiredObjectsForMatch)
-                    {
-                        for (int o = 0; o < matchingObjectPositions.Count; o++)
-                        {
-                            match3Objects.Add(grid.GetObject(matchingObjectPositions[o]));
-                        }
-                    }
-                    matchingObjectPositions.Clear();
-                    continue;
-                }
-                else if (IsGridObjectOfType(gridObject, type))
-                {
-                    matchingObjectPositions.Add(new Vector2Int(x + (i * xMultiplier), y + (i * yMultiplier)));
-                    continue;
-                }
-            }
-
-            if (matchingObjectPositions.Count >= Settings.RequiredObjectsForMatch)
-            {
-                for (int o = 0; o < matchingObjectPositions.Count; o++)
-                {
-                    match3Objects.Add(grid.GetObject(matchingObjectPositions[o]));
-                }
-            }
-
-            return match3Objects.ToArray();
-        }
-
-        private bool IsGridObjectOfType(GridObject gridObject, GridObjectType type)
-        {
-            if (gridObject == null)
-            {
-                return false;
-            }
-            return gridObject.Type == type;
-        }
-        #endregion
     }
 }
