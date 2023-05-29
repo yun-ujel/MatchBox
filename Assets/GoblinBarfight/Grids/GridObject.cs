@@ -1,6 +1,7 @@
 using UnityEngine;
 using Grids;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GoblinBarfight.Grids
 {
@@ -37,14 +38,51 @@ namespace GoblinBarfight.Grids
 
             parent = gameObject.GetComponent<GridObjectBehaviour>();
 
-            SetType(CalculateParentType(grid, x, y, out bool failed));
+            SetType(GenerateType(grid, x, y, out bool failed));
             IsMatched = failed;
         }
 
         #region Parent Reference Methods
+        private void SetType(GridObjectType type)
+        {
+            Type = type;
 
-        #region Type
-        private GridObjectType CalculateParentType(Grid<GridObject> grid, int x, int y, out bool failedToAvoidMatch)
+            parent.GetComponent<SpriteRenderer>().color = type.Color;
+        }
+
+        public void MoveToPosition(int x, int y)
+        {
+            parent.MoveToPosition(grid.GridToWorldPosition(x, y, false));
+            parent.gameObject.name = $"( {x}, {y} )";
+            
+            if (FindMatches(x, y, Type, out GridObject[] matches))
+            {
+                SetMatched(true);
+                for (int i = 0; i < matches.Length; i++)
+                {
+                    matches[i].SetMatched(true);
+                }
+            }
+
+            this.x = x;
+            this.y = y;
+        }
+
+        #region Visuals
+        public void SetSprite(bool matched)
+        {
+            if (matched)
+            {
+                parent.GetComponent<SpriteRenderer>().sprite = Settings.BSprite;
+                return;
+            }
+            parent.GetComponent<SpriteRenderer>().sprite = Settings.ASprite;
+        }
+        #endregion
+
+        #endregion
+
+        private GridObjectType GenerateType(Grid<GridObject> grid, int x, int y, out bool failedToAvoidMatch)
         {
             failedToAvoidMatch = false;
 
@@ -58,7 +96,7 @@ namespace GoblinBarfight.Grids
                 bool typeValid = false;
                 for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < 0; i++)
                 {
-                    if (!GridObjectUtils.IsGridObjectOfType(grid.GetObject(x + i, y), initialType))
+                    if (!grid.GetObject(x + i, y).MatchesType(initialType))
                     {
                         typeValid = true;
                         break;
@@ -78,7 +116,7 @@ namespace GoblinBarfight.Grids
                 bool typeValid = false;
                 for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < -1; i++)
                 {
-                    if (!GridObjectUtils.IsGridObjectOfType(grid.GetObject(x, y + i), initialType))
+                    if (!grid.GetObject(x, y + i).MatchesType(initialType))
                     {
                         typeValid = true;
                         break;
@@ -112,55 +150,17 @@ namespace GoblinBarfight.Grids
             return validTypes[selection];
             #endregion
         }
-        private void SetType(GridObjectType type)
+
+        public void SetMatched(bool matched)
         {
-            Type = type;
-
-            parent.GetComponent<SpriteRenderer>().color = type.Color;
+            IsMatched = matched;
+            SetSprite(matched);
         }
-        #endregion
-
-        #region Interaction
-        public void MoveToPosition(int x, int y)
-        {
-            parent.MoveToPosition(grid.GridToWorldPosition(x, y, false));
-            parent.gameObject.name = $"( {x}, {y} )";
-            
-            if (FindMatches(x, y, Type, out GridObject[] matches))
-            {
-                IsMatched = true;
-
-                SetSprite(false);
-                for (int i = 0; i < matches.Length; i++)
-                {
-                    matches[i].SetSprite(false);
-                }
-            }
-
-            this.x = x;
-            this.y = y;
-        }
-        #endregion
-
-        #region Visuals
-        public void SetSprite(bool a)
-        {
-            if (a)
-            {
-                parent.GetComponent<SpriteRenderer>().sprite = Settings.aSprite;
-                return;
-            }
-            parent.GetComponent<SpriteRenderer>().sprite = Settings.bSprite;
-        }
-        #endregion
-
-        #endregion
-
         public bool FindMatches(int x, int y, GridObjectType type, out GridObject[] matchingObjects)
         {
             List<GridObject> matchingObjectsList = new List<GridObject>();
-            matchingObjectsList.AddRange(grid.FindMatchesInAxis(0, x, y, type, Settings.RequiredObjectsForMatch));
-            matchingObjectsList.AddRange(grid.FindMatchesInAxis(1, x, y, type, Settings.RequiredObjectsForMatch));
+            matchingObjectsList.AddRange(grid.FindMatchesInAxis(0, x, y, type));
+            matchingObjectsList.AddRange(grid.FindMatchesInAxis(1, x, y, type));
 
             matchingObjects = matchingObjectsList.ToArray();
 
@@ -170,6 +170,32 @@ namespace GoblinBarfight.Grids
             }
 
             return false;
+        }
+
+        public void Regenerate()
+        {
+            #region Calculate Type
+
+            #region Remove Types That Would Match
+            List<GridObjectType> matchingTypes = grid.FindTypesThatWouldMatchInAxis(0, x, y);
+            matchingTypes.AddRange(grid.FindTypesThatWouldMatchInAxis(1, x, y));
+
+            GridObjectType[] validTypes = Settings.types.Except(matchingTypes).ToArray();
+            #region Select Type
+            if (validTypes.Length < 1)
+            {
+                SetType(Settings.types[0]);
+                Debug.Log($"( {x}, {y} ): Failed to find a type that wouldn't match");
+            }
+
+            int selection = Random.Range(0, validTypes.Length);
+
+            SetType(validTypes[selection]);
+            #endregion
+
+            #endregion
+
+            #endregion
         }
     }
 }

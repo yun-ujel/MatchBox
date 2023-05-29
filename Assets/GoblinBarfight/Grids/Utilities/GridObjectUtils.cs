@@ -6,20 +6,22 @@ namespace GoblinBarfight.Grids.Utilities
 {
     public static class GridObjectUtils
     {
-        public static GridObject[] FindMatchesInAxis(this Grid<GridObject> grid, int axis, int x, int y, GridObjectType type, int requiredForMatch)
+        public static GridObjectSettings Settings { get; set; }
+
+        public static GridObject[] FindMatchesInAxis(this Grid<GridObject> grid, int axis, int x, int y, GridObjectType type)
         {
             List<GridObject> matchingObjects = new List<GridObject>();
             List<Vector2Int> potentialMatchPositions = new List<Vector2Int>();
 
             GridObject gridObject;
 
-            for (int i = 0 - (requiredForMatch - 1); i < requiredForMatch; i++)
+            for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < Settings.RequiredObjectsForMatch; i++)
             {
                 gridObject = grid.GetObject(AddToAxis(axis, x, y, i));
 
-                if (!IsGridObjectOfType(gridObject, type))
+                if (!gridObject.MatchesType(type))
                 {
-                    if (potentialMatchPositions.Count >= requiredForMatch)
+                    if (potentialMatchPositions.Count >= Settings.RequiredObjectsForMatch)
                     {
                         for (int o = 0; o < potentialMatchPositions.Count; o++)
                         {
@@ -29,14 +31,14 @@ namespace GoblinBarfight.Grids.Utilities
                     potentialMatchPositions.Clear();
                     continue;
                 }
-                else if (IsGridObjectOfType(gridObject, type))
+                else if (gridObject.MatchesType(type))
                 {
                     potentialMatchPositions.Add(AddToAxis(axis, x, y, i));
                     continue;
                 }
             }
 
-            if (potentialMatchPositions.Count >= requiredForMatch)
+            if (potentialMatchPositions.Count >= Settings.RequiredObjectsForMatch)
             {
                 for (int o = 0; o < potentialMatchPositions.Count; o++)
                 {
@@ -47,7 +49,7 @@ namespace GoblinBarfight.Grids.Utilities
             return matchingObjects.ToArray();
         }
 
-        public static List<GridObjectType> FindTypesThatWouldMatchInAxis(this Grid<GridObject> grid, int axis, int x, int y, int requiredForMatch)
+        public static List<GridObjectType> FindTypesThatWouldMatchInAxis(this Grid<GridObject> grid, int axis, int x, int y)
         {
             /*Debug.Log($"Checking for types that would create matches in position ( {x}, {y} ), from axis {axis}...");*/
             List<GridObjectType> typesThatWouldMatch = new List<GridObjectType>();
@@ -57,7 +59,7 @@ namespace GoblinBarfight.Grids.Utilities
             Vector2Int position;
             GridObjectType gridObjectType = null;
 
-            for (int i = 0 - (requiredForMatch - 1); i < requiredForMatch; i++)
+            for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < Settings.RequiredObjectsForMatch; i++)
             {
                 if (i == 0)
                 {
@@ -84,7 +86,7 @@ namespace GoblinBarfight.Grids.Utilities
                     }
                 }
                 
-                if (IsGridObjectOfType(gridObject, gridObjectType))
+                if (gridObject.MatchesType(gridObjectType))
                 {
                     /*Debug.Log($"{position}: Found Grid Object of matching type {gridObjectType.Name}. Saving.");*/
                     potentialMatchPositions.Add(position);
@@ -93,7 +95,7 @@ namespace GoblinBarfight.Grids.Utilities
                 else
                 {
                     /*Debug.Log($"{position}: Streak of {potentialMatchPositions.Count} broken.");*/
-                    if (potentialMatchPositions.Count >= requiredForMatch - 1)
+                    if (potentialMatchPositions.Count >= Settings.RequiredObjectsForMatch - 1)
                     {
                         typesThatWouldMatch.Add(gridObjectType);
                     }
@@ -115,7 +117,7 @@ namespace GoblinBarfight.Grids.Utilities
                 }
             }
 
-            if (potentialMatchPositions.Count >= requiredForMatch - 1)
+            if (potentialMatchPositions.Count >= Settings.RequiredObjectsForMatch - 1)
             {
                 typesThatWouldMatch.Add(gridObjectType);
             }
@@ -132,8 +134,13 @@ namespace GoblinBarfight.Grids.Utilities
             return new Vector2Int(x, y + add);
         }
 
-        public static bool IsGridObjectOfType(GridObject gridObject, GridObjectType type)
+        public static bool MatchesType(this GridObject gridObject, GridObjectType type)
         {
+            if (!Settings.AllowMatchingWithMatchedObjects)
+            {
+                return gridObject != null && !gridObject.IsMatched && gridObject.Type == type;
+            }
+
             return gridObject != null && gridObject.Type == type;
         }
         

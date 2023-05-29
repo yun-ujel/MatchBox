@@ -27,6 +27,7 @@ namespace GoblinBarfight.Grids
         private void Start()
         {
             GridObject.Settings = settings;
+            GridObjectUtils.Settings = settings;
 
             grid = new Grid<GridObject>(9, 9, 1f, Vector2.one * -4.5f, GridObject.create);
         }
@@ -45,14 +46,7 @@ namespace GoblinBarfight.Grids
 
             if (Mouse.current.rightButton.wasPressedThisFrame)
             {
-                grid.WorldToGridPosition(MiscUtils.GetMouseWorldPosition(), out int x, out int y);
-
-                List<GridObjectType> types = grid.FindTypesThatWouldMatchInAxis(0, x, y, settings.RequiredObjectsForMatch);
-                types.AddRange(grid.FindTypesThatWouldMatchInAxis(1, x, y, settings.RequiredObjectsForMatch));
-                for (int i = 0; i < types.Count; i++)
-                {
-                    Debug.Log($"GridDisplay: Type that would match at position ( {x}, {y} ): {types[i]?.Name}");
-                }
+                RegenerateGrid();
             }
         }
 
@@ -72,16 +66,49 @@ namespace GoblinBarfight.Grids
             GridObject object1 = grid.GetObject(xPos1, yPos1);
             GridObject object2 = grid.GetObject(xPos2, yPos2);
 
-            grid.SetObject(xPos1, yPos1, object2); /* Put Object 2 in Object 1's Position */
-            grid.SetObject(xPos2, yPos2, object1); /* Put Object 1 in Object 2's Position */
+            if ((!object1.IsMatched && !object2.IsMatched) || settings.AllowMovingOfMatchedObjects)
+            {
+                grid.SetObject(xPos1, yPos1, object2); /* Put Object 2 in Object 1's Position */
+                grid.SetObject(xPos2, yPos2, object1); /* Put Object 1 in Object 2's Position */
 
-            object2.MoveToPosition(xPos1, yPos1);
-            object1.MoveToPosition(xPos2, yPos2);
+                object2.MoveToPosition(xPos1, yPos1);
+                object1.MoveToPosition(xPos2, yPos2);
+            }
         }
 
         private void SwapObjects(Vector2Int pos1, Vector2Int pos2)
         {
             SwapObjects(pos1.x, pos1.y, pos2.x, pos2.y);
+        }
+
+        private void RegenerateGrid()
+        {
+            GridObject[,] gridCopy = new GridObject[grid.Width, grid.Height];
+
+            for (int x = 0; x < grid.Width; x++)
+            {
+                for (int y = 0; y < grid.Height; y++)
+                {
+                    gridCopy[x, y] = grid.GetObject(x, y);
+                    if (!gridCopy[x, y].IsMatched)
+                    {
+                        grid.SetObject(x, y, null);
+                    }
+                }
+            }
+
+            for (int x = 0; x < grid.Width; x++)
+            {
+                for (int y = 0; y < grid.Height; y++)
+                {
+                    if (gridCopy[x, y].IsMatched)
+                    {
+                        continue;
+                    }
+                    gridCopy[x, y].Regenerate();
+                    grid.SetObject(x, y, gridCopy[x, y]);
+                }
+            }
         }
     }
 

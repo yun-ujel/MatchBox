@@ -11,8 +11,11 @@ namespace GoblinBarfight.Grids
         public GridObjectType[] types;
         [field: SerializeField] public int RequiredObjectsForMatch { get; set; } = 3;
 
+        [field: Space, SerializeField] public bool AllowMatchingWithMatchedObjects { get; set; } = true;
+        [field: SerializeField] public bool AllowMovingOfMatchedObjects { get; set; } = false;
+
         [field: Header("Sprites")]
-        [field: SerializeField] public Sprite aSprite { get; set; }
-        [field: SerializeField] public Sprite bSprite { get; set; }
+        [field: SerializeField] public Sprite ASprite { get; set; }
+        [field: SerializeField] public Sprite BSprite { get; set; }
     }
 }
