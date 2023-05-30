@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace GoblinBarfight.Grids
+namespace MatchBox.Grids
 {
     [System.Serializable]
     public class GridObjectType

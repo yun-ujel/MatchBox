@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace GoblinBarfight.Grids
+namespace MatchBox.Grids
 {
     public class GridObjectBehaviour : MonoBehaviour
     {

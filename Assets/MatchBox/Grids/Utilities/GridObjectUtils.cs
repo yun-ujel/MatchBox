@@ -2,7 +2,7 @@ using UnityEngine;
 using Grids;
 using System.Collections.Generic;
 
-namespace GoblinBarfight.Grids.Utilities
+namespace MatchBox.Grids.Utilities
 {
     public static class GridObjectUtils
     {

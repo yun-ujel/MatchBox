@@ -3,7 +3,7 @@ using Grids;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GoblinBarfight.Grids
+namespace MatchBox.Grids
 {
     using Utilities;
     public class GridObject

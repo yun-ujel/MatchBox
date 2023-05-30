@@ -1,9 +1,8 @@
 using UnityEngine;
 using Grids;
 using UnityEngine.InputSystem;
-using System.Collections.Generic;
 
-namespace GoblinBarfight.Grids
+namespace MatchBox.Grids
 {
     using Utilities;
 
