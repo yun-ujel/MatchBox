@@ -693,8 +693,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1551844694}
-        m_TargetAssemblyTypeName: PauseMenu, Assembly-CSharp
-        m_MethodName: Resume
+        m_TargetAssemblyTypeName: MatchBox.UI.Pause.PauseMenu, Assembly-CSharp
+        m_MethodName: GoToPreviousMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1385,7 +1385,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -11}
-  m_SizeDelta: {x: 80, y: 20}
+  m_SizeDelta: {x: 120, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1232544993
 MonoBehaviour:
@@ -1950,9 +1950,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   menus:
-  - menuParent: {fileID: 653780833}
+  - previousMenuIndex: -1
+    menuParent: {fileID: 653780833}
     firstSelected: {fileID: 624699376}
-  - menuParent: {fileID: 334869498}
+  - previousMenuIndex: 0
+    menuParent: {fileID: 334869498}
     firstSelected: {fileID: 1837696993}
 --- !u!1 &1837696991
 GameObject:
@@ -2039,8 +2041,8 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1551844694}
         m_TargetAssemblyTypeName: MatchBox.UI.Pause.PauseMenu, Assembly-CSharp
-        m_MethodName: OpenMenu
-        m_Mode: 3
+        m_MethodName: GoToPreviousMenu
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine

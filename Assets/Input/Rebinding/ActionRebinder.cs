@@ -93,7 +93,7 @@ public class ActionRebinder : MonoBehaviour
         action.Disable();
 
         rebindOperation = action.PerformInteractiveRebinding(bindingIndex)
-            .OnMatchWaitForAnother(0.2f)
+            .OnMatchWaitForAnother(0.01f)
             .OnCancel
             (
                 operation =>

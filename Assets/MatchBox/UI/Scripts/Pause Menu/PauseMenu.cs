@@ -7,14 +7,25 @@ namespace MatchBox.UI.Pause
 {
     public class PauseMenu : MonoBehaviour
     {
+        #region Properties
+
+        #region Static
+
+        public static PauseMenu Instance { get; private set; }
+
         public static bool Paused { get; private set; }
 
         public static event System.EventHandler OnPaused;
         public static event System.EventHandler OnResume;
 
+        #endregion
+
+        #region Menus
         [System.Serializable]
         public class Menu
         {
+            public int previousMenuIndex;
+
             public GameObject menuParent;
             public Selectable firstSelected;
         }
@@ -22,11 +33,26 @@ namespace MatchBox.UI.Pause
         public Menu[] menus;
         private int currentSelectedMenu;
 
-        private PlayerInput playerInput;
+        #endregion
+
+        #endregion
+
+        private void Awake()
+        {
+            if (Instance != null)
+            {
+                Destroy(this);
+            }
+
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+        }
+
         private void Start()
         {
-            playerInput = GetComponent<PlayerInput>();
-            Resume();
+            CloseAllMenus();
         }
 
         #region Input Methods
@@ -34,29 +60,23 @@ namespace MatchBox.UI.Pause
         {
             if (!ctx.performed) { return; }
 
-            if (Paused)
+            if (!Paused)
             {
-                Resume();
+                OpenMenu(0);
                 return;
             }
 
-            Pause();
+            GoToPreviousMenu();
         }
         #endregion
 
         #region Pause Methods
-        public void Pause(bool openFirstMenu = true)
+        public void Pause()
         {
             Time.timeScale = 0f;
 
             Paused = true;
             OnPaused?.Invoke(this, System.EventArgs.Empty);
-            playerInput.SwitchCurrentActionMap("Menu");
-
-            if (openFirstMenu)
-            {
-                OpenMenu(0);
-            }
         }
 
         public void Resume()
@@ -65,25 +85,17 @@ namespace MatchBox.UI.Pause
 
             Paused = false;
             OnResume?.Invoke(this, System.EventArgs.Empty);
-            playerInput.SwitchCurrentActionMap("Box");
-
-            CloseMenus();
         }
         #endregion
 
         #region Menu Methods
         public void OpenMenu(int index)
         {
-            if (index < 0)
-            {
-                Resume();
-            }
-
             currentSelectedMenu = index;
 
             if (!Paused)
             {
-                Pause(false);
+                Pause();
             }
 
             for (int i = 0; i < menus.Length; i++)
@@ -99,12 +111,35 @@ namespace MatchBox.UI.Pause
             }
         }
 
-        private void CloseMenus()
+        public void GoToPreviousMenu()
+        {
+            if (currentSelectedMenu < 1 || currentSelectedMenu > menus.Length)
+            {
+                CloseAllMenus();
+                return;
+            }
+
+            Menu selectedMenu = menus[currentSelectedMenu];
+            if (selectedMenu == null || selectedMenu.previousMenuIndex < 0 || selectedMenu.previousMenuIndex > menus.Length)
+            {
+                CloseAllMenus();
+                return;
+            }
+
+            OpenMenu(selectedMenu.previousMenuIndex);
+        }
+
+        private void CloseAllMenus()
         {
             currentSelectedMenu = -1;
             for (int i = 0; i < menus.Length; i++)
             {
                 menus[i].menuParent.SetActive(false);
+            }
+
+            if (Paused)
+            {
+                Resume();
             }
         }
         #endregion

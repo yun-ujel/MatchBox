@@ -14,6 +14,11 @@ namespace MatchBox.UI.Pause
 
             PauseMenu.OnPaused += OnPaused;
             PauseMenu.OnResume += OnResume;
+
+            if (!PauseMenu.Paused)
+            {
+                OnResume(this, System.EventArgs.Empty);
+            }
         }
 
         private void OnResume(object sender, System.EventArgs e)
