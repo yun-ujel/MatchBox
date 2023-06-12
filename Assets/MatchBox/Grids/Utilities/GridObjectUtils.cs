@@ -15,35 +15,42 @@ namespace MatchBox.Grids.Utilities
 
             GridObject gridObject;
 
+            Vector2Int originPosition = new Vector2Int(x, y);
+            Vector2Int checkedPosition = originPosition;
+
             for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < Settings.RequiredObjectsForMatch; i++)
             {
-                gridObject = grid.GetObject(AddToAxis(axis, x, y, i));
+                if (i == 0) { continue; }
+
+                checkedPosition[axis] = originPosition[axis] + i;
+
+                Debug.Log($"Checking Position {checkedPosition} for type {type.Name}");
+                gridObject = grid.GetObject(checkedPosition);
 
                 if (!gridObject.MatchesType(type))
                 {
-                    if (potentialMatchPositions.Count >= Settings.RequiredObjectsForMatch)
-                    {
-                        for (int o = 0; o < potentialMatchPositions.Count; o++)
-                        {
-                            matchingObjects.Add(grid.GetObject(potentialMatchPositions[o]));
-                        }
-                    }
-                    potentialMatchPositions.Clear();
+                    EvaluateMatches();
                     continue;
                 }
                 else if (gridObject.MatchesType(type))
                 {
-                    potentialMatchPositions.Add(AddToAxis(axis, x, y, i));
+                    potentialMatchPositions.Add(checkedPosition);
                     continue;
                 }
             }
 
-            if (potentialMatchPositions.Count >= Settings.RequiredObjectsForMatch)
+            EvaluateMatches();
+
+            void EvaluateMatches()
             {
-                for (int o = 0; o < potentialMatchPositions.Count; o++)
+                if (potentialMatchPositions.Count >= Settings.RequiredObjectsForMatch - 1)
                 {
-                    matchingObjects.Add(grid.GetObject(potentialMatchPositions[o]));
+                    for (int o = 0; o < potentialMatchPositions.Count; o++)
+                    {
+                        matchingObjects.Add(grid.GetObject(potentialMatchPositions[o]));
+                    }
                 }
+                potentialMatchPositions.Clear();
             }
 
             return matchingObjects.ToArray();
