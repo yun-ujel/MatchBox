@@ -17,13 +17,13 @@ namespace Grids
         public int Width { get; private set; }
         public int Height { get; private set; }
 
-        private Vector3 originPosition;
-        private float cellSize;
+        public float CellSize { get; private set; }
 
+        private Vector3 originPosition;
         private TGridObject[,] gridArray;
 
         private TextMeshPro[,] debugTextArray;
-        private bool drawDebugTextArray;
+        private readonly bool drawDebugTextArray = false;
 
         public Grid(int width, int height, float cellSize, Vector3 originPosition, System.Func<Grid<TGridObject>, int, int, TGridObject> createGridObject)
         {
@@ -31,7 +31,7 @@ namespace Grids
             Height = height;
 
             this.originPosition = originPosition;
-            this.cellSize = cellSize;
+            CellSize = cellSize;
 
             #region Initialize Grid
             gridArray = new TGridObject[width, height];
@@ -81,22 +81,41 @@ namespace Grids
         {
             if (bottomLeft)
             {
-                return (new Vector3(x, y) * cellSize) + originPosition;
+                return (new Vector3(x, y) * CellSize) + originPosition;
             }
-            return (new Vector3(x, y) * cellSize) + originPosition + (Vector3)(0.5f * cellSize * Vector2.one);
+            return (new Vector3(x, y) * CellSize) + originPosition + (Vector3)(0.5f * CellSize * Vector2.one);
+        }
+
+        public Vector3 GridToWorldPosition(Vector2Int gridPosition, bool bottomLeft = true)
+        {
+            return GridToWorldPosition(gridPosition.x, gridPosition.y, bottomLeft);
         }
 
         public void WorldToGridPosition(Vector3 worldPosition, out int x, out int y)
         {
             worldPosition -= originPosition;
-            x = Mathf.FloorToInt(worldPosition.x / cellSize);
-            y = Mathf.FloorToInt(worldPosition.y / cellSize);
+            x = Mathf.FloorToInt(worldPosition.x / CellSize);
+            y = Mathf.FloorToInt(worldPosition.y / CellSize);
         }
 
         public Vector2Int WorldToGridPosition(Vector3 worldPosition)
         {
             WorldToGridPosition(worldPosition, out int x, out int y);
             return new Vector2Int(x, y);
+        }
+
+        public bool IsGridPositionInbounds(int x, int y)
+        {
+            return y < Height &&
+                y >= 0 &&
+
+                x < Width &&
+                x >= 0;
+        }
+
+        public bool IsGridPositionInbounds(Vector2Int pos)
+        {
+            return IsGridPositionInbounds(pos.x, pos.y);
         }
         #endregion
 
