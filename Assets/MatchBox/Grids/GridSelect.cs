@@ -23,82 +23,115 @@ namespace MatchBox.Grids
 
         private Vector2 navigation;
 
-        private Vector2Int gridPosition;
+        [SerializeField] private Vector2Int gridPosition;
+
+        public event System.EventHandler<OnMoveEventArgs> OnMoveEvent;
+        public class OnMoveEventArgs : System.EventArgs
+        {
+            public OnMoveEventArgs(Vector2Int start, Vector2Int target, Vector3 world)
+            {
+                startGridPosition = start;
+                targetGridPosition = target;
+
+                targetWorldPosition = world;
+            }
+
+            public Vector2Int startGridPosition { get; private set; }
+            public Vector2Int targetGridPosition { get; private set; }
+
+            public Vector3 targetWorldPosition { get; private set; }
+        }
+
         #endregion
 
-        #region Display
-        [Header("Display")]
-        [SerializeField] private float positionSmoothTime;
+        #region Selection
 
-        private Vector3 targetWorldPosition;
-        private Vector3 smoothDampVelocity;
+        bool isSelected;
+
+        public event System.EventHandler<OnSelectEventArgs> OnSelectEvent;
+        public class OnSelectEventArgs : System.EventArgs
+        {
+            public OnSelectEventArgs(bool selected)
+            {
+                IsSelected = selected;
+            }
+            public bool IsSelected { get; private set; }
+        }
+
         #endregion
 
         #endregion
+        private void SetGrid(object sender, GridDisplay.SetGridEventArgs args)
+        {
+            grid = args.grid;
+        }
 
         private void Start()
         {
             gridDisplay.OnSetGridEvent += SetGrid;
         }
 
-        private void SetGrid(object sender, GridDisplay.SetGridEventArgs args)
+        private void Update()
         {
-            grid = args.grid;
-        }
+            timeSinceLastMove += Vector2.one * Time.deltaTime;
 
-        private void TrySwapObjects(Vector3 worldMouseDownPos, Vector3 worldMouseUpPos)
+            ProcessNavigation();
+        }
+        
+        #region Interaction Methods (Swap / Selection)
+        private bool TrySwapObjects(Vector3 worldMouseDownPos, Vector3 worldMouseUpPos)
         {
             Vector2Int mouseDown = grid.WorldToGridPosition(worldMouseDownPos);
             Vector2Int mouseUp = grid.WorldToGridPosition(worldMouseUpPos);
 
-            if (mouseDown != mouseUp && (mouseDown - mouseUp).sqrMagnitude == 1)
-            {
-                gridDisplay.SwapObjects(mouseDown, mouseUp);
-            }
+            return TrySwapObjects(mouseDown, mouseUp);
         }
 
+        private bool TrySwapObjects(Vector2Int position1, Vector2Int position2)
+        {
+            if (position1 != position2 && (position1 - position2).sqrMagnitude == 1)
+            {
+                return gridDisplay.SwapObjects(position1, position2);
+            }
+
+            return false;
+        }
+        private void SetSelected(bool selected)
+        {
+            isSelected = selected;
+
+            if (selected)
+            {
+                OnMoveEvent += SwapOnMove;
+            }
+            else
+            {
+                OnMoveEvent -= SwapOnMove;
+            }
+
+            OnSelectEvent?.Invoke(this, new OnSelectEventArgs(selected));
+        }
+
+        private void SwapOnMove(object sender, OnMoveEventArgs args)
+        {
+            TrySwapObjects(args.startGridPosition, args.targetGridPosition);
+            SetSelected(false);
+        }
+        #endregion
+
+        #region Navigation Methods
         private void SetGridPosition(Vector2Int targetGridPosition)
         {
             if (targetGridPosition != gridPosition && grid.IsGridPositionInbounds(targetGridPosition))
             {
+                Vector3 worldPosition = grid.GridToWorldPosition(targetGridPosition, false);
+
+                OnMoveEvent?.Invoke(this, new OnMoveEventArgs(gridPosition, targetGridPosition, worldPosition));
+
                 gridPosition = targetGridPosition;
-                targetWorldPosition = grid.GridToWorldPosition(gridPosition, false);
+                transform.position = worldPosition;
             }
         }
-
-        #region Input Methods
-        public void Point(InputAction.CallbackContext ctx)
-        {
-            if (!ctx.performed) { return; }
-
-            Vector2 mousePosition = Camera.main.ScreenToWorldPoint(ctx.ReadValue<Vector2>());
-            Vector2Int targetGridPosition = grid.WorldToGridPosition(mousePosition);
-            
-            SetGridPosition(targetGridPosition);
-        }
-
-        public void LeftClick(InputAction.CallbackContext ctx)
-        {
-            
-        }
-
-        public void Submit(InputAction.CallbackContext ctx)
-        {
-
-        }
-
-        public void Cancel(InputAction.CallbackContext ctx)
-        {
-
-        }
-
-        public void Navigate(InputAction.CallbackContext ctx)
-        {
-            if (!ctx.performed) { return; }
-
-            navigation = ctx.ReadValue<Vector2>();
-        }
-        #endregion
 
         private void Move(Vector2 input)
         {
@@ -110,44 +143,21 @@ namespace MatchBox.Grids
             );
 
             Vector2Int gridSize = new Vector2Int(grid.Width, grid.Height);
-            bool looped = false;
 
             for (int axis = 0; axis < 2; axis++)
             {
                 if (targetPosition[axis] >= gridSize[axis])
                 {
                     targetPosition[axis] = 0;
-                    looped = true;
                 }
                 else if (targetPosition[axis] < 0)
                 {
                     targetPosition[axis] = gridSize[axis] - 1;
-                    looped = true;
                 }
             }
             #endregion
 
             SetGridPosition(targetPosition);
-
-            if (looped)
-            {
-                transform.position = targetWorldPosition;
-            }
-        }
-
-        private void Update()
-        {
-            timeSinceLastMove += Vector2.one * Time.deltaTime;
-
-            ProcessNavigation();
-
-            transform.position = Vector3.SmoothDamp
-            (
-                transform.position,
-                targetWorldPosition,
-                ref smoothDampVelocity,
-                positionSmoothTime
-            );
         }
 
         private void ProcessNavigation()
@@ -189,5 +199,62 @@ namespace MatchBox.Grids
                 consecutiveMoves[axis]++;
             }
         }
+        #endregion
+
+        #region Input Methods
+        public void Point(InputAction.CallbackContext ctx)
+        {
+            if (!ctx.performed) { return; }
+
+            Vector2 mousePosition = Camera.main.ScreenToWorldPoint(ctx.ReadValue<Vector2>());
+            Vector2Int targetGridPosition = grid.WorldToGridPosition(mousePosition);
+            
+            SetGridPosition(targetGridPosition);
+        }
+
+        public void LeftClick(InputAction.CallbackContext ctx)
+        {
+            if (!ctx.performed) { return; }
+
+            if (ctx.control.IsPressed())
+            {
+                SetSelected(true);
+            }
+            else
+            {
+                SetSelected(false);
+            }
+        }
+
+        public void Submit(InputAction.CallbackContext ctx)
+        {
+            if (!ctx.performed) { return; }
+
+            if (ctx.control.IsPressed())
+            {
+                SetSelected(!isSelected);
+            }
+        }
+
+        public void Cancel(InputAction.CallbackContext ctx)
+        {
+            if (!ctx.performed) { return; }
+
+            if (ctx.control.IsPressed())
+            {
+                SetSelected(false);
+            }
+        }
+
+        public void Navigate(InputAction.CallbackContext ctx)
+        {
+            if (!ctx.performed) { return; }
+
+            navigation = ctx.ReadValue<Vector2>();
+        }
+        #endregion
+
+
+
     }
 }

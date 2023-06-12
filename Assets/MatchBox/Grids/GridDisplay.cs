@@ -35,7 +35,7 @@ namespace MatchBox.Grids
             OnSetGridEvent?.Invoke(this, new SetGridEventArgs { grid = grid });
         }
 
-        public void SwapObjects(int xPos1, int yPos1, int xPos2, int yPos2)
+        public bool SwapObjects(int xPos1, int yPos1, int xPos2, int yPos2)
         {
             GridObject object1 = grid.GetObject(xPos1, yPos1);
             GridObject object2 = grid.GetObject(xPos2, yPos2);
@@ -47,12 +47,18 @@ namespace MatchBox.Grids
 
                 object2.MoveToPosition(xPos1, yPos1);
                 object1.MoveToPosition(xPos2, yPos2);
+                
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
-        public void SwapObjects(Vector2Int pos1, Vector2Int pos2)
+        public bool SwapObjects(Vector2Int pos1, Vector2Int pos2)
         {
-            SwapObjects(pos1.x, pos1.y, pos2.x, pos2.y);
+            return SwapObjects(pos1.x, pos1.y, pos2.x, pos2.y);
         }
 
         public void RegenerateGrid()
