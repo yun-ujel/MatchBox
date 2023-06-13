@@ -11,14 +11,17 @@ namespace MatchBox.Grids
         #region Parameters
 
         #region Grid
+
         private Grid<GridObject> grid;
+
         [SerializeField] private GridObjectSettings settings;
-        #endregion
 
-        #region Input
-        private Vector3 mouseDownPosition;
+        public class SetGridEventArgs : System.EventArgs
+        {
+            public Grid<GridObject> grid;
+        }
+        public event System.EventHandler<SetGridEventArgs> OnSetGridEvent;
 
-        private bool mouseDown;
         #endregion
 
         #endregion
@@ -29,38 +32,10 @@ namespace MatchBox.Grids
             GridObjectUtils.Settings = settings;
 
             grid = new Grid<GridObject>(9, 9, 1f, Vector2.one * -4.5f, GridObject.create);
-        }
-        private void Update()
-        {
-            if (Mouse.current.leftButton.wasPressedThisFrame && !Mouse.current.leftButton.wasReleasedThisFrame)
-            {
-                mouseDown = true;
-                mouseDownPosition = MiscUtils.GetMouseWorldPosition();
-            }
-
-            if (mouseDown && Mouse.current.leftButton.wasReleasedThisFrame)
-            {
-                TriggerMouseReleased(MiscUtils.GetMouseWorldPosition());
-            }
-
-            if (Mouse.current.rightButton.wasPressedThisFrame)
-            {
-                RegenerateGrid();
-            }
+            OnSetGridEvent?.Invoke(this, new SetGridEventArgs { grid = grid });
         }
 
-        private void TriggerMouseReleased(Vector3 mouseUpPosition)
-        {
-            Vector2Int mouseDown = grid.WorldToGridPosition(mouseDownPosition);
-            Vector2Int mouseUp = grid.WorldToGridPosition(mouseUpPosition);
-
-            if (mouseDown != mouseUp && (mouseDown - mouseUp).sqrMagnitude == 1)
-            {
-                SwapObjects(mouseDown, mouseUp);
-            }
-        }
-
-        private void SwapObjects(int xPos1, int yPos1, int xPos2, int yPos2)
+        public bool SwapObjects(int xPos1, int yPos1, int xPos2, int yPos2)
         {
             GridObject object1 = grid.GetObject(xPos1, yPos1);
             GridObject object2 = grid.GetObject(xPos2, yPos2);
@@ -72,15 +47,21 @@ namespace MatchBox.Grids
 
                 object2.MoveToPosition(xPos1, yPos1);
                 object1.MoveToPosition(xPos2, yPos2);
+                
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
-        private void SwapObjects(Vector2Int pos1, Vector2Int pos2)
+        public bool SwapObjects(Vector2Int pos1, Vector2Int pos2)
         {
-            SwapObjects(pos1.x, pos1.y, pos2.x, pos2.y);
+            return SwapObjects(pos1.x, pos1.y, pos2.x, pos2.y);
         }
 
-        private void RegenerateGrid()
+        public void RegenerateGrid()
         {
             GridObject[,] gridCopy = new GridObject[grid.Width, grid.Height];
 
