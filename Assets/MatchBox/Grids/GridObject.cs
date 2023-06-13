@@ -90,43 +90,33 @@ namespace MatchBox.Grids
             bool allTypesValid = true;
 
             #region Remove Invalid Types
-            if (x >= Settings.RequiredObjectsForMatch - 1)
-            {
-                GridObjectType initialType = grid.GetObject(x - 1, y).Type;
-                bool typeValid = false;
-                for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < 0; i++)
-                {
-                    if (!grid.GetObject(x + i, y).MatchesType(initialType))
-                    {
-                        typeValid = true;
-                        break;
-                    }
-                }
-                if (!typeValid)
-                {
-                    //Debug.Log($"Grid Object at ( {x}, {y} ) has removed {initialType.Name} from Selectable Types");
-                    _ = validTypes.Remove(initialType);
-                    allTypesValid = false;
-                }
-            }
+            Vector2Int originPosition = new Vector2Int(x, y);
 
-            if (y >= Settings.RequiredObjectsForMatch - 1)
+            for (int axis = 0; axis < 2; axis++)
             {
-                GridObjectType initialType = grid.GetObject(x, y - 1).Type;
-                bool typeValid = false;
-                for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < -1; i++)
+                if (originPosition[axis] >= Settings.RequiredObjectsForMatch - 1)
                 {
-                    if (!grid.GetObject(x, y + i).MatchesType(initialType))
+                    Vector2Int checkedPosition = new Vector2Int(x, y);
+                    checkedPosition[axis] -= 1;
+
+                    GridObjectType initialType = grid.GetObject(checkedPosition).Type;
+                    bool initialTypeCreatesMatch = true;
+
+                    for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < -1; i++)
                     {
-                        typeValid = true;
-                        break;
+                        checkedPosition[axis] = originPosition[axis] + i;
+                        if (!grid.GetObject(checkedPosition).MatchesType(initialType))
+                        {
+                            initialTypeCreatesMatch = false;
+                            break;
+                        }
                     }
-                }
-                if (!typeValid)
-                {
-                    //Debug.Log($"Grid Object at ( {x}, {y} ) has removed {initialType.Name} from Selectable Types");
-                    _ = validTypes.Remove(initialType);
-                    allTypesValid = false;
+                    if (initialTypeCreatesMatch)
+                    {
+                        //Debug.Log($"Grid Object at ( {x}, {y} ) has removed {initialType.Name} from Selectable Types");
+                        _ = validTypes.Remove(initialType);
+                        allTypesValid = false;
+                    }
                 }
             }
             #endregion

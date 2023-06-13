@@ -63,18 +63,18 @@ namespace MatchBox.Grids.Utilities
             List<Vector2Int> potentialMatchPositions = new List<Vector2Int>();
 
             GridObject gridObject;
-            Vector2Int position;
+
+            Vector2Int originPosition = new Vector2Int(x, y);
+            Vector2Int checkedPosition = originPosition;
+
             GridObjectType gridObjectType = null;
 
             for (int i = 0 - (Settings.RequiredObjectsForMatch - 1); i < Settings.RequiredObjectsForMatch; i++)
             {
-                if (i == 0)
-                {
-                    continue;
-                }
+                if (i == 0) { continue; }
 
-                position = AddToAxis(axis, x, y, i);
-                gridObject = grid.GetObject(position);
+                checkedPosition[axis] = originPosition[axis] + i;
+                gridObject = grid.GetObject(checkedPosition);
 
                 if (gridObjectType == null)
                 {
@@ -88,7 +88,7 @@ namespace MatchBox.Grids.Utilities
                         gridObjectType = gridObject.Type;
                         /*Debug.Log($"{position}: Found valid Grid Object. Saving type {gridObjectType.Name}.");*/
 
-                        potentialMatchPositions.Add(position);
+                        potentialMatchPositions.Add(checkedPosition);
                         continue;
                     }
                 }
@@ -96,17 +96,13 @@ namespace MatchBox.Grids.Utilities
                 if (gridObject.MatchesType(gridObjectType))
                 {
                     /*Debug.Log($"{position}: Found Grid Object of matching type {gridObjectType.Name}. Saving.");*/
-                    potentialMatchPositions.Add(position);
+                    potentialMatchPositions.Add(checkedPosition);
                     continue;
                 }
                 else
                 {
                     /*Debug.Log($"{position}: Streak of {potentialMatchPositions.Count} broken.");*/
-                    if (potentialMatchPositions.Count >= Settings.RequiredObjectsForMatch - 1)
-                    {
-                        typesThatWouldMatch.Add(gridObjectType);
-                    }
-                    potentialMatchPositions.Clear();
+                    EvaluateMatches();
 
                     if (gridObject == null)
                     {
@@ -118,27 +114,23 @@ namespace MatchBox.Grids.Utilities
                         gridObjectType = gridObject.Type;
                         /*Debug.Log($"{position}: Found valid Grid Object. Saving type {gridObjectType.Name}.");*/
 
-                        potentialMatchPositions.Add(position);
+                        potentialMatchPositions.Add(checkedPosition);
                         continue;
                     }
                 }
             }
 
-            if (potentialMatchPositions.Count >= Settings.RequiredObjectsForMatch - 1)
+            EvaluateMatches();
+            void EvaluateMatches()
             {
-                typesThatWouldMatch.Add(gridObjectType);
+                if (potentialMatchPositions.Count >= Settings.RequiredObjectsForMatch - 1)
+                {
+                    typesThatWouldMatch.Add(gridObjectType);
+                }
+                potentialMatchPositions.Clear();
             }
 
             return typesThatWouldMatch;
-        }
-
-        private static Vector2Int AddToAxis(int axis, int x, int y, int add)
-        {
-            if (axis == 0)
-            {
-                return new Vector2Int(x + add, y);
-            }
-            return new Vector2Int(x, y + add);
         }
 
         public static bool MatchesType(this GridObject gridObject, GridObjectType type)
