@@ -24,7 +24,6 @@ namespace MatchBox.Grids.Utilities
 
                 checkedPosition[axis] = originPosition[axis] + i;
 
-                Debug.Log($"Checking Position {checkedPosition} for type {type.Name}");
                 gridObject = grid.GetObject(checkedPosition);
 
                 if (!gridObject.MatchesType(type))
