@@ -3,33 +3,117 @@ using UnityEngine.InputSystem;
 
 namespace MatchBox.Box
 {
-    using CollisionChecks;
     public class BoxPlayerHandler : MonoBehaviour
     {
         #region Collision Checks
-        [SerializeField] private CollisionCheck[] collisionChecks;
+        [Header("Collision Checking")]
+        [SerializeField] private LayerMask groundLayer;
+        [SerializeField] private CollisionCheckValues collisionCheckValues;
+
+        [field: SerializeField] public bool OnGround { get; private set; }
+        [field: SerializeField] public bool OnWall { get; private set; }
+
+        private Vector2 wallDirection;
+
+        public event System.EventHandler<OnCollisionEventArgs> OnTouchGroundEvent;
+        public event System.EventHandler<OnCollisionEventArgs> OnTouchWallEvent;
+
+        #region Classes
+        [System.Serializable]
+        private class CollisionCheckValues
+        {
+            [Header("Ground")]
+            [SerializeField, Range(0f, 1f)] private float minGroundNormalY = 0.9f;
+            [SerializeField, Range(0f, 1f)] private float maxGroundNormalY = 1f;
+
+            public bool IsGround(float normalY)
+            {
+                return normalY >= minGroundNormalY && normalY <= maxGroundNormalY;
+            }
+
+            [Header("Wall")]
+            [SerializeField, Range(0f, 1f)] private float minWallNormalX = 0.9f;
+            [SerializeField, Range(0f, 1f)] private float maxWallNormalX = 1f;
+
+            public bool IsWall(float normalX)
+            {
+                float abs = Mathf.Abs(normalX);
+                return abs >= minWallNormalX && abs <= maxWallNormalX;
+            }
+        }
+        public class OnCollisionEventArgs : System.EventArgs
+        {
+            public Vector2 direction;
+
+            public OnCollisionEventArgs(Vector2 direction)
+            {
+                this.direction = direction;
+            }
+        }
+        #endregion
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
-            foreach(CollisionCheck collisionCheck in collisionChecks)
+            bool wasOnGround = OnGround;
+            bool wasOnWall = OnWall;
+
+            EvaluateCollision(collision);
+            
+            if (OnGround && !wasOnGround)
             {
-                collisionCheck.OnCollisionEnter(collision);
+                OnTouchGroundEvent?.Invoke(this, new OnCollisionEventArgs(Vector2.down));
+            }
+            if (OnWall && !wasOnWall)
+            {
+                OnTouchWallEvent?.Invoke(this, new OnCollisionEventArgs(wallDirection));
             }
         }
 
         private void OnCollisionStay2D(Collision2D collision)
         {
-            foreach (CollisionCheck collisionCheck in collisionChecks)
-            {
-                collisionCheck.OnCollisionStay(collision);
-            }
+            EvaluateCollision(collision);
         }
 
         private void OnCollisionExit2D(Collision2D collision)
         {
-            foreach (CollisionCheck collisionCheck in collisionChecks)
+            OnGround = false;
+            OnWall = false;
+        }
+
+        private void EvaluateCollision(Collision2D collision)
+        {
+            int contactsOnLeft = 0;
+            int contactsOnRight = 0;
+
+            for (int i = 0; i < collision.contactCount; i++)
             {
-                collisionCheck.OnCollisionExit(collision);
+                Vector2 contactNormal = collision.GetContact(i).normal;
+                OnGround |= collisionCheckValues.IsGround(contactNormal.y);
+                OnWall |= collisionCheckValues.IsWall(contactNormal.x);
+
+                Vector2 direction = collision.GetContact(i).point - (Vector2)collision.otherCollider.transform.position;
+
+                if (direction.x > 0)
+                {
+                    contactsOnRight++;
+                }
+                else if (direction.x < 0)
+                {
+                    contactsOnLeft++;
+                }
+            }
+            
+            if (contactsOnLeft < contactsOnRight)
+            {
+                wallDirection.x = 1f;
+            }
+            else if (contactsOnLeft > contactsOnRight)
+            {
+                wallDirection.x = -1f;
+            }
+            else
+            {
+                wallDirection.x = 0f;
             }
         }
         #endregion

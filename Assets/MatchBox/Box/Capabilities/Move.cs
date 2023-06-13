@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace MatchBox.Box.Capabilities
 {
-    using CollisionChecks;
 
     [RequireComponent(typeof(Rigidbody2D))]
     public class Move : Capability
@@ -13,7 +12,6 @@ namespace MatchBox.Box.Capabilities
         private Vector2 navigation;
 
         #region Serialized
-        [SerializeField] private GroundCheck groundCheck;
 
         [Header("Speed Values")]
         [SerializeField] private float maxSpeed;
@@ -52,7 +50,28 @@ namespace MatchBox.Box.Capabilities
 
         private void FixedUpdate()
         {
+            velocity = body.velocity;
 
+            acceleration = GetAcceleration();
+
+            maxSpeedChange = acceleration * Time.fixedDeltaTime;
+            velocity.x = Mathf.MoveTowards(velocity.x, navigation.x * maxSpeed, maxSpeedChange);
+
+            body.velocity = velocity;
+        }
+
+        private float GetAcceleration()
+        {
+            if ((navigation.x < 0f && velocity.x > 0f) || (navigation.x > 0f && velocity.x < 0f))
+            {
+                return BoxPlayer.OnGround ? groundDeceleration : airDeceleration;
+            }
+            else if (navigation.x == 0f)
+            {
+                return BoxPlayer.OnGround ? groundDeceleration : airDeceleration;
+            }
+
+            return BoxPlayer.OnGround ? groundAcceleration : groundDeceleration;
         }
     }
 }
