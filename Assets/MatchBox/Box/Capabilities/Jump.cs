@@ -16,11 +16,6 @@ namespace MatchBox.Box.Capabilities
 
         [Space]
 
-        [SerializeField, Range(0f, 20f)] private float upwardsGravityMultiplier;
-        [SerializeField, Range(0f, 20f)] private float downwardsGravityMultiplier;
-
-        [Space]
-
         [SerializeField, Range(0f, 1f)] private float jumpReleaseMultiplier;
 
         [Header("Leniency")]
@@ -79,8 +74,6 @@ namespace MatchBox.Box.Capabilities
 
         private void FixedUpdate()
         {
-            CalculateGravity();
-
             velocity = body.velocity;
 
             if (jumpBufferLeft > 0f && coyoteTimeLeft > 0f)
@@ -110,44 +103,5 @@ namespace MatchBox.Box.Capabilities
             coyoteTimeLeft = 0f;
             jumpBufferLeft = 0f;
         }
-
-        #region Gravity Methods
-        private void CalculateGravity()
-        {
-            if (body.gravityScale == 0f && currentGravityState != GravityState.neutral)
-            {
-                ResetGravity();
-            }
-            else if (body.velocity.y > 0f && currentGravityState != GravityState.upwards)
-            {
-                ResetGravity();
-                currentGravityState = GravityState.upwards;
-
-                body.gravityScale *= upwardsGravityMultiplier;
-            }
-            else if (body.velocity.y < 0f && currentGravityState != GravityState.downwards)
-            {
-                ResetGravity();
-                currentGravityState = GravityState.downwards;
-
-                body.gravityScale *= downwardsGravityMultiplier;
-            }
-        }
-
-        private void ResetGravity()
-        {
-            switch (currentGravityState)
-            {
-                case GravityState.upwards:
-                    body.gravityScale /= upwardsGravityMultiplier;
-                    break;
-                case GravityState.downwards:
-                    body.gravityScale /= downwardsGravityMultiplier;
-                    break;
-                default:
-                    break;
-            }
-        }
-        #endregion
     }
 }
