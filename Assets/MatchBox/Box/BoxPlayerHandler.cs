@@ -10,8 +10,8 @@ namespace MatchBox.Box
         [SerializeField] private LayerMask groundLayer;
         [SerializeField] private CollisionCheckValues collisionCheckValues;
 
-        [field: SerializeField] public bool OnGround { get; private set; }
-        [field: SerializeField] public bool OnWall { get; private set; }
+        public bool OnGround { get; private set; }
+        public bool OnWall { get; private set; }
 
         private Vector2 wallDirection;
 
