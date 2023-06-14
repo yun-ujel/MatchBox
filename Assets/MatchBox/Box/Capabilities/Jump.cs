@@ -42,6 +42,9 @@ namespace MatchBox.Box.Capabilities
 
         #endregion
 
+        #region Events
+
+        #endregion
         #endregion
 
         private void Start()
@@ -55,7 +58,7 @@ namespace MatchBox.Box.Capabilities
         {
             submitButtonDown = args.context.control.IsPressed();
 
-            if (submitButtonDown)
+            if (submitButtonDown && !BoxPlayer.OnWall)
             {
                 jumpBufferLeft = jumpBuffer;
             }
@@ -65,6 +68,12 @@ namespace MatchBox.Box.Capabilities
         {
             coyoteTimeLeft -= Time.deltaTime;
             jumpBufferLeft -= Time.deltaTime;
+
+            if (BoxPlayer.OnWall)
+            {
+                jumpBufferLeft = 0f;
+                coyoteTimeLeft = 0f;
+            }
 
             if (BoxPlayer.OnGround && !isRisingFromJump)
             {
@@ -94,7 +103,7 @@ namespace MatchBox.Box.Capabilities
             body.velocity = velocity;
         }
 
-        private void TriggerJump()
+        public void TriggerJump()
         {
             velocity.y = jumpForce;
 

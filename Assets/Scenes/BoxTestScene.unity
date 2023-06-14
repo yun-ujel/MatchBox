@@ -1243,6 +1243,7 @@ GameObject:
   - component: {fileID: 1278223383}
   - component: {fileID: 1278223385}
   - component: {fileID: 1278223386}
+  - component: {fileID: 1278223384}
   - component: {fileID: 1278223381}
   - component: {fileID: 1278223382}
   m_Layer: 0
@@ -1416,8 +1417,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jumpForce: 10
   jumpReleaseMultiplier: 0.84
-  jumpBuffer: 0.2
-  coyoteTime: 0.2
+  jumpBuffer: 0.1
+  coyoteTime: 0.1
+--- !u!114 &1278223384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1278223376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec42bd07dccfd074c9178ce91df155dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  walljumpClimb: {x: 8, y: 10}
+  walljumpBounce: {x: 10, y: 8}
+  jumpBuffer: 0.1
+  coyoteTime: 0.1
 --- !u!114 &1278223385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1427,7 +1444,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1278223376}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c95e5f06c41aad041810fef9391b6e74, type: 3}
+  m_Script: {fileID: 11500000, guid: 46a3acb46d2d12c4d91f88220f78aa50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   maxWallrunSpeed: 6

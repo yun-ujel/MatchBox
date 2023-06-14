@@ -3,21 +3,29 @@ using UnityEngine;
 namespace MatchBox.Box.Capabilities
 {
     [RequireComponent(typeof(Rigidbody2D))]
-    public class Wallslide : Capability
+    public class WallSlide : Capability
     {
+        #region Parameters
         private Rigidbody2D body;
-        private Vector2 velocity;
 
         private Vector2 navigation;
 
-        private float wallDirection;
-
+        #region Serialized
         [Header("Wall Run")]
         [SerializeField] private float maxWallrunSpeed;
         [SerializeField, Range(0f, 100f)] private float wallrunAcceleration;
 
         [Header("Wall Slide")]
         [SerializeField] private float maxWallslideSpeed;
+        #endregion
+
+        #region Calculations
+        private Vector2 velocity;
+
+        private float wallDirectionX;
+
+        #endregion
+        #endregion
 
         void Start()
         {
@@ -29,7 +37,7 @@ namespace MatchBox.Box.Capabilities
 
         private void TouchWall(object sender, BoxPlayerHandler.OnCollisionEventArgs args)
         {
-            wallDirection = args.direction.x;
+            wallDirectionX = args.direction.x;
         }
 
         private void Navigate(object sender, BoxPlayerHandler.OnInputEventArgs args)
@@ -45,7 +53,7 @@ namespace MatchBox.Box.Capabilities
                 
                 if (MovingTowardsWall())
                 {
-                    velocity.x = wallDirection;
+                    velocity.x = wallDirectionX;
                 }
 
                 if (navigation.y > 0f)
@@ -63,9 +71,9 @@ namespace MatchBox.Box.Capabilities
 
         private bool MovingTowardsWall()
         {
-            return (wallDirection > 0f && navigation.x > 0f)
-                || (wallDirection < 0f && navigation.x < 0f)
-                || (navigation.x == 0f && wallDirection != 0f);
+            return (wallDirectionX > 0f && navigation.x > 0f)
+                || (wallDirectionX < 0f && navigation.x < 0f)
+                || (navigation.x == 0f && wallDirectionX != 0f);
         }
     }
 }
