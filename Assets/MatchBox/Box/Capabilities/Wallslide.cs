@@ -3,7 +3,7 @@ using UnityEngine;
 namespace MatchBox.Box.Capabilities
 {
     [RequireComponent(typeof(Rigidbody2D))]
-    public class WallSlide : Capability
+    public class Wallslide : Capability
     {
         #region Parameters
         private Rigidbody2D body;

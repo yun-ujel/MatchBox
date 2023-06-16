@@ -18,6 +18,8 @@ namespace MatchBox.Box
         public event System.EventHandler<OnCollisionEventArgs> OnTouchGroundEvent;
         public event System.EventHandler<OnCollisionEventArgs> OnTouchWallEvent;
 
+        public event System.EventHandler<OnCollisionEventArgs> OnCollisionExitEvent;
+
         #region Classes
         [System.Serializable]
         private class CollisionCheckValues
@@ -44,10 +46,12 @@ namespace MatchBox.Box
         public class OnCollisionEventArgs : System.EventArgs
         {
             public Vector2 direction;
+            public Collision2D collision;
 
-            public OnCollisionEventArgs(Vector2 direction)
+            public OnCollisionEventArgs(Vector2 direction, Collision2D collision)
             {
                 this.direction = direction;
+                this.collision = collision;
             }
         }
         #endregion
@@ -61,11 +65,11 @@ namespace MatchBox.Box
             
             if (OnGround && !wasOnGround)
             {
-                OnTouchGroundEvent?.Invoke(this, new OnCollisionEventArgs(Vector2.down));
+                OnTouchGroundEvent?.Invoke(this, new OnCollisionEventArgs(Vector2.down, collision));
             }
             if (OnWall && !wasOnWall)
             {
-                OnTouchWallEvent?.Invoke(this, new OnCollisionEventArgs(wallDirection));
+                OnTouchWallEvent?.Invoke(this, new OnCollisionEventArgs(wallDirection, collision));
             }
         }
 
@@ -78,6 +82,8 @@ namespace MatchBox.Box
         {
             OnGround = false;
             OnWall = false;
+
+            OnCollisionExitEvent?.Invoke(this, new OnCollisionEventArgs(Vector2.zero, collision));
         }
 
         private void EvaluateCollision(Collision2D collision)
