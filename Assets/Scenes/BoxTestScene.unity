@@ -1647,14 +1647,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db96781861faf6741aceb2c629fe5fb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxRunSpeed: 5
+  maxRunSpeed: 3
   activeGroundAcceleration: 100
   activeAirAcceleration: 24
   passiveDeceleration: 4
-  maxWallrunSpeed: 5
+  maxWallrunSpeed: 3
   wallrunAcceleration: 100
-  maxWallslideSpeed: 6
+  maxWallslideSpeed: 4
   wallslideDeceleration: 40
+  jumpForce: 6
+  jumpReleaseMultiplier: 1
+  jumpBuffer: 0.1
+  coyoteTime: 0.1
+  wallJumpForce: 6
+  wallCoyoteTime: 0.1
+  lockedXVelocityDuration: 0.1
 --- !u!1 &1894203236
 GameObject:
   m_ObjectHideFlags: 0

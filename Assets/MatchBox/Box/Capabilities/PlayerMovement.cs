@@ -29,6 +29,23 @@ namespace MatchBox.Box.Capabilities
 
         [SerializeField] private float maxWallslideSpeed;
         [SerializeField, Range(0f, 100f)] private float wallslideDeceleration;
+
+        [Header("Jump")]
+        [SerializeField] private float jumpForce;
+        [SerializeField, Range(0f, 1f)] private float jumpReleaseMultiplier;
+
+        [Space]
+
+        [SerializeField, Range(0f, 1f)] private float jumpBuffer;
+        [SerializeField, Range(0f, 1f)] private float coyoteTime;
+
+        [Header("Wall Jump")]
+        [SerializeField] private float wallJumpForce;
+
+        [Space]
+
+        [SerializeField, Range(0f, 1f)] private float wallCoyoteTime;
+        [SerializeField, Range(0f, 1f)] private float lockedXVelocityDuration;
         #endregion
 
         #region Calculations
@@ -43,6 +60,21 @@ namespace MatchBox.Box.Capabilities
         private bool queuedWallUnstick;
         #endregion
 
+        #region Horizontal Movement Calculations
+        private float desiredVelocityX;
+        #endregion
+
+        #region Jump Calculations
+        private bool isRisingFromJump;
+        private bool submitButtonDown;
+
+        private float jumpBufferLeft;
+        private float coyoteTimeLeft;
+
+        private float wallCoyoteTimeLeft;
+
+        private float lockedXVelocityTimeLeft;
+        #endregion
 
         #endregion
         #endregion
@@ -53,6 +85,7 @@ namespace MatchBox.Box.Capabilities
 
             BoxPlayer.OnNavigateEvent += Navigate;
             BoxPlayer.OnLeftClickEvent += LeftClick;
+            BoxPlayer.OnSubmitEvent += Submit;
 
             BoxPlayer.OnTouchWallEvent += TouchWall;
         }
@@ -76,6 +109,16 @@ namespace MatchBox.Box.Capabilities
             if (!args.context.control.IsPressed()) { return; }
             UnstickFromWall();
         }
+
+        private void Submit(object sender, BoxPlayerHandler.OnInputEventArgs args)
+        {
+            submitButtonDown = args.context.control.IsPressed();
+
+            if (submitButtonDown)
+            {
+                jumpBufferLeft = jumpBuffer;
+            }
+        }
         #endregion
 
         private void TouchWall(object sender, BoxPlayerHandler.OnCollisionEventArgs args)
@@ -91,6 +134,31 @@ namespace MatchBox.Box.Capabilities
         {
             timeSinceLastNavigate += Time.deltaTime;
 
+            jumpBufferLeft -= Time.deltaTime;
+            coyoteTimeLeft -= Time.deltaTime;
+
+            wallCoyoteTimeLeft -= Time.deltaTime;
+            lockedXVelocityTimeLeft -= Time.deltaTime;
+
+            if (BoxPlayer.OnWall)
+            {
+                coyoteTimeLeft = 0f;
+
+                if (!isRisingFromJump)
+                {
+                    wallCoyoteTimeLeft = wallCoyoteTime;
+                }
+            }
+            else if (BoxPlayer.OnGround)
+            {
+                wallCoyoteTimeLeft = 0f;
+
+                if (!isRisingFromJump)
+                {
+                    coyoteTimeLeft = coyoteTime;
+                }
+            }
+
             if (!BoxPlayer.OnWall && queuedWallUnstick)
             {
                 queuedWallUnstick = false;
@@ -101,6 +169,16 @@ namespace MatchBox.Box.Capabilities
         {
             velocity = body.velocity;
 
+            if (lockedXVelocityTimeLeft > 0f)
+            {
+                desiredVelocityX = -wallDirectionX * maxRunSpeed;
+            }
+            else
+            {
+                desiredVelocityX = navigation.x * maxRunSpeed;
+            }
+
+            #region Wall Interactions
             if (BoxPlayer.OnWall && MovingTowardsWall())
             {
                 // Stick To Wall
@@ -116,7 +194,7 @@ namespace MatchBox.Box.Capabilities
                 }
 
                 // Wall Run
-                if (navigation.y > 0f)
+                if (navigation.y > 0f && !isRisingFromJump)
                 {
                     velocity.y = Mathf.MoveTowards(Mathf.Max(velocity.y, 0f), maxWallrunSpeed, wallrunAcceleration * Time.fixedDeltaTime);
                     isWallrunning = true;
@@ -140,26 +218,91 @@ namespace MatchBox.Box.Capabilities
                     velocity.y = Mathf.Clamp(velocity.y, -maxWallslideSpeed, maxWallslideSpeed);
                 }
             }
+            #endregion
             else
             {
-                if (isWallrunning)
+                if (isWallrunning && !isRisingFromJump)
                 {
                     DropOffWall();
                 }
 
+                #region Horizontal Movement
                 velocity.x = Mathf.MoveTowards
                 (
                     velocity.x,
-                    navigation.x * maxRunSpeed,
+                    desiredVelocityX,
                     GetAcceleration() * Time.fixedDeltaTime
                 );
+                #endregion
             }
+
+            #region Jump
+            if (jumpBufferLeft > 0f)
+            {
+                if (coyoteTimeLeft > 0f)
+                {
+                    Jump();
+                }
+
+                if (wallCoyoteTimeLeft > 0f)
+                {
+                    WallJump();
+                }
+            }
+
+            if (body.velocity.y < 0f)
+            {
+                isRisingFromJump = false;
+            }
+            else if (isRisingFromJump && !submitButtonDown)
+            {
+                Debug.Log("Jump Cancelled");
+                velocity.y *= jumpReleaseMultiplier;
+                isRisingFromJump = false;
+            }
+            #endregion
 
             body.velocity = velocity;
         }
 
+        private void Jump()
+        {
+            Debug.Log("Jump");
+            velocity.y = jumpForce;
+
+            isWallrunning = false;
+            isRisingFromJump = true;
+
+            coyoteTimeLeft = 0f;
+            wallCoyoteTimeLeft = 0f;
+
+            jumpBufferLeft = 0f;
+        }
+
+        private void WallJump()
+        {
+            Debug.Log("Wall Jump");
+            velocity.y = wallJumpForce;
+
+            isWallrunning = false;
+            isRisingFromJump = true;
+
+            coyoteTimeLeft = 0f;
+            wallCoyoteTimeLeft = 0f;
+
+            jumpBufferLeft = 0f;
+
+            lockedXVelocityTimeLeft = lockedXVelocityDuration;
+
+            queuedWallUnstick = true;
+
+            desiredVelocityX = -wallDirectionX * maxRunSpeed;
+            velocity.x = desiredVelocityX;
+        }
+
         private void DropOffWall()
         {
+            Debug.Log("Drop Off Wall");
             velocity.y *= 0.2f;
             isWallrunning = false;
         }
