@@ -38,8 +38,9 @@ namespace MatchBox.Box.Capabilities
         private bool isWallrunning;
         private float wallDirectionX;
 
+        private float wallPositionX;
+
         private bool queuedWallUnstick;
-        private float timeSinceLastWallExit;
         #endregion
 
 
@@ -54,7 +55,6 @@ namespace MatchBox.Box.Capabilities
             BoxPlayer.OnLeftClickEvent += LeftClick;
 
             BoxPlayer.OnTouchWallEvent += TouchWall;
-            BoxPlayer.OnCollisionExitEvent += CollisionExit;
         }
 
         #region Events
@@ -81,18 +81,14 @@ namespace MatchBox.Box.Capabilities
         private void TouchWall(object sender, BoxPlayerHandler.OnCollisionEventArgs args)
         {
             wallDirectionX = args.direction.x;
-        }
 
-        private void CollisionExit(object sender, BoxPlayerHandler.OnCollisionEventArgs args)
-        {
-            timeSinceLastWallExit = 0f;
+            wallPositionX = args.collision.GetContact(0).point.x;
         }
 
         #endregion
 
         private void Update()
         {
-            timeSinceLastWallExit += Time.deltaTime;
             timeSinceLastNavigate += Time.deltaTime;
 
             if (!BoxPlayer.OnWall && queuedWallUnstick)
@@ -110,7 +106,13 @@ namespace MatchBox.Box.Capabilities
                 // Stick To Wall
                 if (!queuedWallUnstick)
                 {
-                    velocity.x = wallDirectionX * 0.5f;
+                    velocity.x = 0f;
+
+                    body.position = new Vector2
+                    (
+                        wallPositionX + (transform.localScale.x * 0.5f * -wallDirectionX), 
+                        body.position.y
+                    );
                 }
 
                 // Wall Run
@@ -140,7 +142,7 @@ namespace MatchBox.Box.Capabilities
             }
             else
             {
-                if (isWallrunning && timeSinceLastWallExit > 0.02f)
+                if (isWallrunning)
                 {
                     DropOffWall();
                 }
@@ -158,7 +160,7 @@ namespace MatchBox.Box.Capabilities
 
         private void DropOffWall()
         {
-            velocity.y *= 0.5f;
+            velocity.y *= 0.2f;
             isWallrunning = false;
         }
 
