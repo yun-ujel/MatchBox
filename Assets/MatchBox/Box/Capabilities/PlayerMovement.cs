@@ -13,39 +13,43 @@ namespace MatchBox.Box.Capabilities
 
         #region Serialized
         [Header("Ground Movement")]
-        [SerializeField] private float maxRunSpeed;
+        [SerializeField] private float maxRunSpeed = 4f;
 
         [Space]
 
-        [SerializeField, Range(0f, 100f)] private float activeGroundAcceleration;
-        [SerializeField, Range(0f, 100f)] private float activeAirAcceleration;
-        [SerializeField, Range(0f, 100f)] private float passiveDeceleration;
+        [SerializeField, Range(0f, 100f)] private float activeGroundAcceleration = 80f;
+        [SerializeField, Range(0f, 100f)] private float activeAirAcceleration = 24f;
+        [SerializeField, Range(0f, 100f)] private float passiveDeceleration = 4f;
+
+        [Space]
+
+        [SerializeField] private float maxControllableVelocity = 12f;
 
         [Header("Wall Run / Slide")]
-        [SerializeField] private float maxWallrunSpeed;
-        [SerializeField, Range(0f, 100f)] private float wallrunAcceleration;
+        [SerializeField] private float maxWallrunSpeed = 4f;
+        [SerializeField, Range(0f, 100f)] private float wallrunAcceleration = 100f;
 
         [Space]
 
-        [SerializeField] private float maxWallslideSpeed;
-        [SerializeField, Range(0f, 100f)] private float wallslideDeceleration;
+        [SerializeField] private float maxWallslideSpeed = 4f;
+        [SerializeField, Range(0f, 100f)] private float wallslideDeceleration = 16f;
 
         [Header("Jump")]
-        [SerializeField] private float jumpForce;
-        [SerializeField, Range(0f, 1f)] private float jumpReleaseMultiplier;
+        [SerializeField] private float jumpForce = 7f;
+        [SerializeField, Range(0f, 1f)] private float jumpReleaseMultiplier = 0.75f;
 
         [Space]
 
-        [SerializeField, Range(0f, 1f)] private float jumpBuffer;
-        [SerializeField, Range(0f, 1f)] private float coyoteTime;
+        [SerializeField, Range(0f, 1f)] private float jumpBuffer = 0.1f;
+        [SerializeField, Range(0f, 1f)] private float coyoteTime = 0.1f;
 
         [Header("Wall Jump")]
-        [SerializeField] private float wallJumpForce;
+        [SerializeField] private float wallJumpForce = 7f;
 
         [Space]
 
-        [SerializeField, Range(0f, 1f)] private float wallCoyoteTime;
-        [SerializeField, Range(0f, 1f)] private float lockedXVelocityDuration;
+        [SerializeField, Range(0f, 1f)] private float wallCoyoteTime = 0.1f;
+        [SerializeField, Range(0f, 1f)] private float lockedXVelocityDuration = 0.1f;
         #endregion
 
         #region Calculations
@@ -162,6 +166,8 @@ namespace MatchBox.Box.Capabilities
             if (!BoxPlayer.OnWall && queuedWallUnstick)
             {
                 queuedWallUnstick = false;
+                isWallrunning = false;
+                wallDirectionX = 0f;
             }
         }
 
@@ -175,11 +181,18 @@ namespace MatchBox.Box.Capabilities
             }
             else
             {
-                desiredVelocityX = navigation.x * maxRunSpeed;
+                if (Mathf.Abs(navigation.x) > 0.1f)
+                {
+                    desiredVelocityX = Mathf.Clamp(navigation.x * 2f, -1, 1) * maxRunSpeed;
+                }
+                else
+                {
+                    desiredVelocityX = navigation.x * maxRunSpeed;
+                }
             }
 
             #region Wall Interactions
-            if (BoxPlayer.OnWall && MovingTowardsWall())
+            if (BoxPlayer.OnWall && MovingTowardsWall() && !BoxPlayer.OnGround)
             {
                 // Stick To Wall
                 if (!queuedWallUnstick)
@@ -199,7 +212,7 @@ namespace MatchBox.Box.Capabilities
                     velocity.y = Mathf.MoveTowards(Mathf.Max(velocity.y, 0f), maxWallrunSpeed, wallrunAcceleration * Time.fixedDeltaTime);
                     isWallrunning = true;
                 }
-                else if (isWallrunning)
+                else
                 {
                     DropOffWall();
                 }
@@ -221,10 +234,7 @@ namespace MatchBox.Box.Capabilities
             #endregion
             else
             {
-                if (isWallrunning && !isRisingFromJump)
-                {
-                    DropOffWall();
-                }
+                DropOffWall();
 
                 #region Horizontal Movement
                 velocity.x = Mathf.MoveTowards
@@ -302,14 +312,17 @@ namespace MatchBox.Box.Capabilities
 
         private void DropOffWall()
         {
-            Debug.Log("Drop Off Wall");
-            velocity.y *= 0.2f;
-            isWallrunning = false;
+            if (isWallrunning && !isRisingFromJump && !queuedWallUnstick)
+            {
+                Debug.Log("Drop Off Wall");
+                velocity.y *= 0.2f;
+                isWallrunning = false;
+            }
         }
 
         private float GetAcceleration()
         {
-            if (navigation.x == 0f && timeSinceLastNavigate > 0.1f)
+            if ((navigation.x == 0f && timeSinceLastNavigate > 0.1f) || body.velocity.sqrMagnitude > Mathf.Pow(maxControllableVelocity, 2))
             {
                 return passiveDeceleration;
             }
