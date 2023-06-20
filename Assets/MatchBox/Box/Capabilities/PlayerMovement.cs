@@ -18,7 +18,7 @@ namespace MatchBox.Box.Capabilities
         [Space]
 
         [SerializeField, Range(0f, 100f)] private float activeGroundAcceleration = 80f;
-        [SerializeField, Range(0f, 100f)] private float activeAirAcceleration = 24f;
+        [SerializeField, Range(0f, 100f)] private float activeAirAcceleration = 16f;
         [SerializeField, Range(0f, 100f)] private float passiveDeceleration = 4f;
 
         [Space]
@@ -50,6 +50,18 @@ namespace MatchBox.Box.Capabilities
 
         [SerializeField, Range(0f, 1f)] private float wallCoyoteTime = 0.1f;
         [SerializeField, Range(0f, 1f)] private float lockedXVelocityDuration = 0.1f;
+
+        [Header("Jump Kick")]
+        [SerializeField] private float jumpKickForce = 3f;
+
+        [Space]
+
+        [SerializeField] private float jumpKickXVelocityCap = 3f;
+        [SerializeField, Range(0f, 1f)] private float jumpKickXVelocityMultiplier = 0.6f;
+
+        [Space]
+
+        [SerializeField] private int maxJumpKicks = 1;
         #endregion
 
         #region Calculations
@@ -78,6 +90,8 @@ namespace MatchBox.Box.Capabilities
         private float wallCoyoteTimeLeft;
 
         private float lockedXVelocityTimeLeft;
+
+        private int jumpKicksLeft;
         #endregion
 
         #endregion
@@ -147,6 +161,7 @@ namespace MatchBox.Box.Capabilities
             if (BoxPlayer.OnWall)
             {
                 coyoteTimeLeft = 0f;
+                jumpKicksLeft = maxJumpKicks;
 
                 if (!isRisingFromJump)
                 {
@@ -156,6 +171,7 @@ namespace MatchBox.Box.Capabilities
             else if (BoxPlayer.OnGround)
             {
                 wallCoyoteTimeLeft = 0f;
+                jumpKicksLeft = maxJumpKicks;
 
                 if (!isRisingFromJump)
                 {
@@ -258,6 +274,11 @@ namespace MatchBox.Box.Capabilities
                 {
                     WallJump();
                 }
+
+                if (jumpKicksLeft > 0 && coyoteTimeLeft < 0f && wallCoyoteTimeLeft < 0f && !BoxPlayer.OnGround && !BoxPlayer.OnWall)
+                {
+                    JumpKick();
+                }
             }
 
             if (body.velocity.y < 0f)
@@ -275,6 +296,7 @@ namespace MatchBox.Box.Capabilities
             body.velocity = velocity;
         }
 
+        #region Jump Methods
         private void Jump()
         {
             Debug.Log("Jump");
@@ -310,16 +332,24 @@ namespace MatchBox.Box.Capabilities
             velocity.x = desiredVelocityX;
         }
 
-        private void DropOffWall()
+        private void JumpKick()
         {
-            if (isWallrunning && !isRisingFromJump && !queuedWallUnstick)
-            {
-                Debug.Log("Drop Off Wall");
-                velocity.y *= 0.2f;
-                isWallrunning = false;
-            }
-        }
+            Debug.Log("Jump Kick");
 
+            velocity.x *= jumpKickXVelocityMultiplier;
+            velocity.x = Mathf.Clamp(velocity.x, -jumpKickXVelocityCap, jumpKickXVelocityCap);
+
+            velocity.y = jumpKickForce;
+
+            jumpKicksLeft--;
+
+            isRisingFromJump = false;
+
+            jumpBufferLeft = 0f;
+        }
+        #endregion
+
+        #region Ground Movement Methods
         private float GetAcceleration()
         {
             if ((navigation.x == 0f && timeSinceLastNavigate > 0.1f) || body.velocity.sqrMagnitude > Mathf.Pow(maxControllableVelocity, 2))
@@ -329,6 +359,18 @@ namespace MatchBox.Box.Capabilities
             else
             {
                 return BoxPlayer.OnGround || BoxPlayer.OnWall ? activeGroundAcceleration : activeAirAcceleration;
+            }
+        }
+        #endregion
+
+        #region Wall Methods
+        private void DropOffWall()
+        {
+            if (isWallrunning && !isRisingFromJump && !queuedWallUnstick)
+            {
+                Debug.Log("Drop Off Wall");
+                velocity.y *= 0.2f;
+                isWallrunning = false;
             }
         }
 
@@ -346,5 +388,6 @@ namespace MatchBox.Box.Capabilities
             queuedWallUnstick = true;
             body.velocity += new Vector2(-wallDirectionX, 0f);
         }
+        #endregion
     }
 }

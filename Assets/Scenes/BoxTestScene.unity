@@ -630,7 +630,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxRunSpeed: 4
   activeGroundAcceleration: 80
-  activeAirAcceleration: 24
+  activeAirAcceleration: 16
   passiveDeceleration: 4
   maxControllableVelocity: 12
   maxWallrunSpeed: 4
@@ -644,6 +644,10 @@ MonoBehaviour:
   wallJumpForce: 7
   wallCoyoteTime: 0.1
   lockedXVelocityDuration: 0.1
+  jumpKickForce: 3
+  jumpKickXVelocityCap: 4
+  jumpKickXVelocityMultiplier: 0.6
+  maxJumpKicks: 1
 --- !u!114 &1653069924
 MonoBehaviour:
   m_ObjectHideFlags: 0
