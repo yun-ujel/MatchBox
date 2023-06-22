@@ -2,9 +2,13 @@ using UnityEngine;
 
 namespace MatchBox.Grids
 {
+    [RequireComponent(typeof(SpriteRenderer))]
     public class GridObjectBehaviour : MonoBehaviour
     {
         #region Parameters
+
+        private GridObject child;
+        private SpriteRenderer spriteRenderer;
 
         #region Moving
         private Vector3 targetPosition;
@@ -15,7 +19,7 @@ namespace MatchBox.Grids
 
         #endregion
 
-        private void Update()
+        private void FixedUpdate()
         {
             if (isMoving)
             {
@@ -26,7 +30,9 @@ namespace MatchBox.Grids
                         transform.position,
                         targetPosition,
                         ref velocity,
-                        0.04f
+                        0.04f,
+                        Mathf.Infinity,
+                        Time.fixedDeltaTime
                     );
                 }
                 else
@@ -36,10 +42,35 @@ namespace MatchBox.Grids
             }
         }
 
-        public void MoveToPosition(Vector3 position)
+        private void MoveToPosition(Vector3 position)
         {
             targetPosition = position;
             isMoving = true;
+        }
+
+        public void SetChild(GridObject child)
+        {
+            this.child = child;
+
+            child.OnMoveEvent += OnMove;
+            child.OnUpdateVisualEvent += OnUpdateVisual;
+        }
+
+        private void OnMove(object sender, GridObject.OnMoveEventArgs args)
+        {
+            gameObject.name = $"( {args.TargetGridPositionX}, {args.TargetGridPositionY} )";
+            MoveToPosition(args.TargetWorldPosition);
+        }
+
+        private void OnUpdateVisual(object sender, GridObject.OnUpdateVisualEventArgs args)
+        {
+            if (spriteRenderer == null)
+            {
+                spriteRenderer = GetComponent<SpriteRenderer>();
+            }
+
+            spriteRenderer.sprite = args.IsMatched ? args.Type.MatchedSprite : args.Type.DefaultSprite;
+            spriteRenderer.color = args.Type.Color;
         }
     }
 }

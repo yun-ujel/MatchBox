@@ -14,9 +14,5 @@ namespace MatchBox.Grids
 
         [field: Space, SerializeField] public bool AllowMatchingWithMatchedObjects { get; set; } = true;
         [field: SerializeField] public bool AllowMovingOfMatchedObjects { get; set; } = false;
-
-        [field: Header("Sprites")]
-        [field: SerializeField] public Sprite ASprite { get; set; }
-        [field: SerializeField] public Sprite BSprite { get; set; }
     }
 }

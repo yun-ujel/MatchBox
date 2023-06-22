@@ -7,6 +7,9 @@ namespace MatchBox.Grids
     {
         [field: SerializeField] public string Name { get; set; }
         [field: SerializeField] public Color Color { get; set; }
+
+        [field: Space, SerializeField] public Sprite DefaultSprite { get; set; }
+        [field: SerializeField] public Sprite MatchedSprite { get; set; }
     }
 
 }

@@ -21,10 +21,42 @@ namespace MatchBox.Grids
         private int y;
         #endregion
 
-        private GridObjectBehaviour parent;
-
         public GridObjectType Type { get; private set; }
         public bool IsMatched { get; private set; }
+
+        #region Events
+
+        public System.EventHandler<OnUpdateVisualEventArgs> OnUpdateVisualEvent;
+        public System.EventHandler<OnMoveEventArgs> OnMoveEvent;
+
+        public class OnUpdateVisualEventArgs : System.EventArgs
+        {
+            public GridObjectType Type { get; private set; }
+            public bool IsMatched { get; private set; }
+
+            public OnUpdateVisualEventArgs(GridObjectType type, bool isMatched)
+            {
+                Type = type;
+                IsMatched = isMatched;
+            }
+        }
+
+        public class OnMoveEventArgs : System.EventArgs
+        {
+            public Vector3 TargetWorldPosition { get; private set; }
+
+            public int TargetGridPositionX { get; private set; }
+            public int TargetGridPositionY { get; private set; }
+
+            public OnMoveEventArgs(Vector3 targetWorldPosition, int x, int y)
+            {
+                TargetWorldPosition = targetWorldPosition;
+
+                TargetGridPositionX = x;
+                TargetGridPositionY = y;
+            }
+        }
+        #endregion
 
         #endregion
         public GridObject(Grid<GridObject> grid, int x, int y)
@@ -33,32 +65,38 @@ namespace MatchBox.Grids
             this.x = x;
             this.y = y;
 
-            GameObject gameObject = Object.Instantiate(Settings.GridObjectPrefab, grid.GridToWorldPosition(x, y, false), Quaternion.identity);
-            gameObject.name = $"( {x}, {y} )";
+            GameObject gameObject = Object.Instantiate(Settings.GridObjectPrefab, Vector3.zero, Quaternion.identity);
 
             if (Settings.GridParentTransform != null)
             {
                 gameObject.transform.parent = Settings.GridParentTransform;
             }
-
-            parent = gameObject.GetComponent<GridObjectBehaviour>();
+            gameObject.GetComponent<GridObjectBehaviour>().SetChild(this);
 
             SetType(GenerateType(grid, x, y, out bool failed));
             IsMatched = failed;
+
+            OnMoveEvent?.Invoke(this, new OnMoveEventArgs(grid.GridToWorldPosition(x, y, false), x, y));
+            OnUpdateVisualEvent?.Invoke(this, new OnUpdateVisualEventArgs(Type, IsMatched));
         }
 
-        #region Parent Reference Methods
+        #region Event Triggering Methods
         private void SetType(GridObjectType type)
         {
             Type = type;
 
-            parent.GetComponent<SpriteRenderer>().color = type.Color;
+            OnUpdateVisualEvent?.Invoke(this, new OnUpdateVisualEventArgs(Type, IsMatched));
+        }
+
+        public void SetMatched(bool matched)
+        {
+            IsMatched = matched;
+            OnUpdateVisualEvent?.Invoke(this, new OnUpdateVisualEventArgs(Type, IsMatched));
         }
 
         public void MoveToPosition(int x, int y)
         {
-            parent.MoveToPosition(grid.GridToWorldPosition(x, y, false));
-            parent.gameObject.name = $"( {x}, {y} )";
+            OnMoveEvent?.Invoke(this, new OnMoveEventArgs(grid.GridToWorldPosition(x, y, false), x, y));
             
             if (FindMatches(x, y, Type, out GridObject[] matches))
             {
@@ -72,18 +110,6 @@ namespace MatchBox.Grids
             this.x = x;
             this.y = y;
         }
-
-        #region Visuals
-        public void SetSprite(bool matched)
-        {
-            if (matched)
-            {
-                parent.GetComponent<SpriteRenderer>().sprite = Settings.BSprite;
-                return;
-            }
-            parent.GetComponent<SpriteRenderer>().sprite = Settings.ASprite;
-        }
-        #endregion
 
         #endregion
 
@@ -146,11 +172,6 @@ namespace MatchBox.Grids
             #endregion
         }
 
-        public void SetMatched(bool matched)
-        {
-            IsMatched = matched;
-            SetSprite(matched);
-        }
         public bool FindMatches(int x, int y, GridObjectType type, out GridObject[] matchingObjects)
         {
             List<GridObject> matchingObjectsList = new List<GridObject>();
