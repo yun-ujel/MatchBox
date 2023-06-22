@@ -64,9 +64,11 @@ namespace MatchBox.Grids
         private void SetGrid(object sender, GridDisplay.SetGridEventArgs args)
         {
             grid = args.grid;
+
+            gridDisplay.OnSetGridEvent -= SetGrid;
         }
 
-        private void Start()
+        private void Awake()
         {
             gridDisplay.OnSetGridEvent += SetGrid;
         }
