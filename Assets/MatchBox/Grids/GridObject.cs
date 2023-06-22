@@ -36,6 +36,11 @@ namespace MatchBox.Grids
             GameObject gameObject = Object.Instantiate(Settings.GridObjectPrefab, grid.GridToWorldPosition(x, y, false), Quaternion.identity);
             gameObject.name = $"( {x}, {y} )";
 
+            if (Settings.GridParentTransform != null)
+            {
+                gameObject.transform.parent = Settings.GridParentTransform;
+            }
+
             parent = gameObject.GetComponent<GridObjectBehaviour>();
 
             SetType(GenerateType(grid, x, y, out bool failed));

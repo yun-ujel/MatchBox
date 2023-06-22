@@ -28,6 +28,8 @@ namespace MatchBox.Grids
 
         private void Start()
         {
+            settings.GridParentTransform = transform;
+
             GridObject.Settings = settings;
             GridObjectUtils.Settings = settings;
 

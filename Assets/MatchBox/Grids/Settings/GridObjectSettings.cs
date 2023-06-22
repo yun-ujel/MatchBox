@@ -5,6 +5,7 @@ namespace MatchBox.Grids
     [CreateAssetMenu(fileName = "Grid Object Settings", menuName = "Scriptable Object/Grid Object Settings")]
     public class GridObjectSettings : ScriptableObject
     {
+        public Transform GridParentTransform { get; set; }
         [field: SerializeField] public GameObject GridObjectPrefab { get; set; }
 
         [Header("Gameplay")]
