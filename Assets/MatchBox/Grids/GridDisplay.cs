@@ -1,5 +1,6 @@
 using UnityEngine;
 using Grids;
+using System.Collections.Generic;
 using UnityEngine.InputSystem;
 
 namespace MatchBox.Grids
@@ -37,6 +38,9 @@ namespace MatchBox.Grids
             OnSetGridEvent?.Invoke(this, new SetGridEventArgs { grid = grid });
         }
 
+        #region Grid Interaction Methods
+
+        #region Singular Grid Objects
         public bool SwapObjects(int xPos1, int yPos1, int xPos2, int yPos2)
         {
             GridObject object1 = grid.GetObject(xPos1, yPos1);
@@ -47,8 +51,8 @@ namespace MatchBox.Grids
                 grid.SetObject(xPos1, yPos1, object2); /* Put Object 2 in Object 1's Position */
                 grid.SetObject(xPos2, yPos2, object1); /* Put Object 1 in Object 2's Position */
 
-                object2.MoveToPosition(xPos1, yPos1);
-                object1.MoveToPosition(xPos2, yPos2);
+                MoveGridObject(object2, xPos1, yPos1);
+                MoveGridObject(object1, xPos2, yPos2);
                 
                 return true;
             }
@@ -56,13 +60,46 @@ namespace MatchBox.Grids
             {
                 return false;
             }
+
+            void MoveGridObject(GridObject gridObject, int x, int y)
+            {
+                gridObject.MoveToPosition(x, y);
+
+                if (FindMatches(x, y, gridObject.Type, out GridObject[] matches))
+                {
+                    gridObject.SetMatched(true);
+                    for (int i = 0; i < matches.Length; i++)
+                    {
+                        matches[i].SetMatched(true);
+                    }
+                }
+            }
+        }
+
+        public bool FindMatches(int x, int y, GridObjectType type, out GridObject[] matchingObjects)
+        {
+            List<GridObject> matchingObjectsList = new List<GridObject>();
+            matchingObjectsList.AddRange(grid.FindMatchesInAxis(0, x, y, type));
+            matchingObjectsList.AddRange(grid.FindMatchesInAxis(1, x, y, type));
+
+            matchingObjects = matchingObjectsList.ToArray();
+
+            if (matchingObjectsList.Count > 0)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public bool SwapObjects(Vector2Int pos1, Vector2Int pos2)
         {
             return SwapObjects(pos1.x, pos1.y, pos2.x, pos2.y);
         }
+        #endregion
 
+
+        #region Full Grid
         public void RegenerateGrid()
         {
             GridObject[,] gridCopy = new GridObject[grid.Width, grid.Height];
@@ -92,6 +129,9 @@ namespace MatchBox.Grids
                 }
             }
         }
+
+        #endregion
+        #endregion
     }
 
 }

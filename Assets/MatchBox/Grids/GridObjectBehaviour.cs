@@ -15,6 +15,8 @@ namespace MatchBox.Grids
         private Vector3 velocity;
 
         private bool isMoving;
+
+        private float smoothTime;
         #endregion
 
         #endregion
@@ -30,7 +32,7 @@ namespace MatchBox.Grids
                         transform.position,
                         targetPosition,
                         ref velocity,
-                        0.04f,
+                        smoothTime,
                         Mathf.Infinity,
                         Time.fixedDeltaTime
                     );
@@ -58,6 +60,8 @@ namespace MatchBox.Grids
 
         private void OnMove(object sender, GridObject.OnMoveEventArgs args)
         {
+            smoothTime = args.SmoothTime;
+
             gameObject.name = $"( {args.TargetGridPositionX}, {args.TargetGridPositionY} )";
             MoveToPosition(args.TargetWorldPosition);
         }

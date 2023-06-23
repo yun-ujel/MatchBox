@@ -48,12 +48,16 @@ namespace MatchBox.Grids
             public int TargetGridPositionX { get; private set; }
             public int TargetGridPositionY { get; private set; }
 
-            public OnMoveEventArgs(Vector3 targetWorldPosition, int x, int y)
+            public float SmoothTime { get; private set; }
+
+            public OnMoveEventArgs(Vector3 targetWorldPosition, int x, int y, float smoothTime = 0.04f)
             {
                 TargetWorldPosition = targetWorldPosition;
 
                 TargetGridPositionX = x;
                 TargetGridPositionY = y;
+
+                SmoothTime = smoothTime;
             }
         }
         #endregion
@@ -94,18 +98,14 @@ namespace MatchBox.Grids
             OnUpdateVisualEvent?.Invoke(this, new OnUpdateVisualEventArgs(Type, IsMatched));
         }
 
+        public void MoveVisual(Vector3 position, float smoothTime = 0.04f)
+        {
+            OnMoveEvent?.Invoke(this, new OnMoveEventArgs(position, x, y, smoothTime));
+        }
+
         public void MoveToPosition(int x, int y)
         {
             OnMoveEvent?.Invoke(this, new OnMoveEventArgs(grid.GridToWorldPosition(x, y, false), x, y));
-            
-            if (FindMatches(x, y, Type, out GridObject[] matches))
-            {
-                SetMatched(true);
-                for (int i = 0; i < matches.Length; i++)
-                {
-                    matches[i].SetMatched(true);
-                }
-            }
 
             this.x = x;
             this.y = y;
