@@ -17,33 +17,35 @@ namespace MatchBox.Grids
 
         [SerializeField] private GridObjectSettings settings;
 
-        public class SetGridEventArgs : System.EventArgs
-        {
-            public Grid<GridObject> grid;
-        }
-        public event System.EventHandler<SetGridEventArgs> OnSetGridEvent;
-
+        private List<GridObject> matchedGridObjects = new List<GridObject>();
         #endregion
 
         #region Events
-
-        public event System.EventHandler<OnMatchFoundEventArgs> OnMatchFoundEvent;
-
         public class OnMatchFoundEventArgs : System.EventArgs
         {
-            public GridObject[] GridObjects { get; private set; }
+            public GridObject[] ObjectsInMatch { get; private set; }
+            public GridObject[] NewlyMatchedObjects { get; private set; }
             public GridObjectType Type { get; private set; }
             public int XPos { get; private set; }
             public int YPos { get; private set; }
 
-            public OnMatchFoundEventArgs(int x, int y, GridObjectType type, GridObject[] gridObjects)
+            public OnMatchFoundEventArgs(int x, int y, GridObjectType type, GridObject[] objectsInMatch, GridObject[] newlyMatchedObjects)
             {
                 XPos = x;
                 YPos = y;
                 Type = type;
-                GridObjects = gridObjects;
+                ObjectsInMatch = objectsInMatch;
+                NewlyMatchedObjects = newlyMatchedObjects;
             }
         }
+        public class SetGridEventArgs : System.EventArgs
+        {
+            public Grid<GridObject> grid;
+        }
+
+
+        public event System.EventHandler<SetGridEventArgs> OnSetGridEvent;
+        public event System.EventHandler<OnMatchFoundEventArgs> OnMatchFoundEvent;
 
         #endregion
 
@@ -58,6 +60,30 @@ namespace MatchBox.Grids
 
             grid = new Grid<GridObject>(9, 9, 1f, Vector2.one * -4.5f, GridObject.create);
             OnSetGridEvent?.Invoke(this, new SetGridEventArgs { grid = grid });
+        }
+
+        private void AddToMatchedObjects(GridObject[] add, out GridObject[] newObjects)
+        {
+            List<GridObject> newObjectsList = new List<GridObject>();
+
+            for (int i = 0; i < add.Length; i++)
+            {
+                if (matchedGridObjects.Contains(add[i]))
+                {
+                    continue;
+                }
+                newObjectsList.Add(add[i]);
+                matchedGridObjects.Add(add[i]);
+            }
+
+            if (newObjectsList.Count == 0)
+            {
+                newObjects = null;
+                return;
+            }
+
+            newObjects = newObjectsList.ToArray();
+            return;
         }
 
         #region Grid Interaction Methods
@@ -94,7 +120,9 @@ namespace MatchBox.Grids
                         matches[i].SetMatched(true);
                     }
 
-                    OnMatchFoundEvent?.Invoke(this, new OnMatchFoundEventArgs(x, y, gridObject.Type, matches));
+                    AddToMatchedObjects(matches, out GridObject[] newMatches);
+
+                    OnMatchFoundEvent?.Invoke(this, new OnMatchFoundEventArgs(x, y, gridObject.Type, matches, newMatches));
                 }
             }
         }
