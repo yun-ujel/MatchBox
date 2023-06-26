@@ -27,7 +27,7 @@ namespace MatchBox.Grids
 
         #region Events
 
-        public System.EventHandler<OnMatchFoundEventArgs> OnMatchFoundEvent;
+        public event System.EventHandler<OnMatchFoundEventArgs> OnMatchFoundEvent;
 
         public class OnMatchFoundEventArgs : System.EventArgs
         {
