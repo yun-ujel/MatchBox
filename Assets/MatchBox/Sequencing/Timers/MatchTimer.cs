@@ -25,7 +25,7 @@ namespace MatchBox.Sequencing.Timers
 
         private void OnMatchFound(object sender, GridDisplay.OnMatchFoundEventArgs e)
         {
-            displayedTimer -= e.GridObjects.Length * timeLostPerMatch;
+            displayedTimer -= e.ObjectsInMatch.Length * timeLostPerMatch;
         }
 
         private void Update()
