@@ -26,8 +26,8 @@ namespace MatchBox.Grids
 
         #region Events
 
-        public System.EventHandler<OnUpdateVisualEventArgs> OnUpdateVisualEvent;
-        public System.EventHandler<OnMoveEventArgs> OnMoveEvent;
+        public event System.EventHandler<OnUpdateVisualEventArgs> OnUpdateVisualEvent;
+        public event System.EventHandler<OnMoveEventArgs> OnMoveEvent;
 
         public class OnUpdateVisualEventArgs : System.EventArgs
         {
