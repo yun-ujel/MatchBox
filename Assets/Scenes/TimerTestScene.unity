@@ -430,7 +430,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridDisplay: {fileID: 957882438}
-  startTime: 120
+  startTime: 88
   timeLostPerMatch: 2
   displayedTimer: 0
 --- !u!1 &968278827

@@ -186,6 +186,24 @@ namespace MatchBox.Grids
             }
         }
 
+        public void SetUnmatchedObjectsHidden(bool hidden)
+        {
+            for (int x = 0; x < grid.Width; x++)
+            {
+                for (int y = 0; y < grid.Height; y++)
+                {
+                    GridObject gridObject = grid.GetObject(x, y);
+
+                    if (gridObject.IsMatched)
+                    {
+                        continue;
+                    }
+
+                    gridObject.SetVisualHidden(hidden);
+                }
+            }
+        }
+
         #endregion
         #endregion
     }

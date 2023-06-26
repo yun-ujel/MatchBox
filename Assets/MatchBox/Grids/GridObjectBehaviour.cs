@@ -56,6 +56,17 @@ namespace MatchBox.Grids
 
             child.OnMoveEvent += OnMove;
             child.OnUpdateVisualEvent += OnUpdateVisual;
+            child.OnHideEvent += Hide;
+        }
+
+        private void Hide(object sender, GridObject.OnHideEventArgs args)
+        {
+            if (spriteRenderer == null)
+            {
+                spriteRenderer = GetComponent<SpriteRenderer>();
+            }
+
+            spriteRenderer.forceRenderingOff = args.IsHidden;
         }
 
         private void OnMove(object sender, GridObject.OnMoveEventArgs args)

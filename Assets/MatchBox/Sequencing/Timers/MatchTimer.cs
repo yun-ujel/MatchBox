@@ -23,9 +23,9 @@ namespace MatchBox.Sequencing.Timers
             displayedTimer = startTime;
         }
 
-        private void OnMatchFound(object sender, GridDisplay.OnMatchFoundEventArgs e)
+        private void OnMatchFound(object sender, GridDisplay.OnMatchFoundEventArgs args)
         {
-            displayedTimer -= e.ObjectsInMatch.Length * timeLostPerMatch;
+            displayedTimer -= args.NewlyMatchedObjects.Length * timeLostPerMatch;
         }
 
         private void Update()
@@ -38,6 +38,7 @@ namespace MatchBox.Sequencing.Timers
             {
                 displayedTimer = 0f;
                 Debug.Log("Time's Up!");
+                gridDisplay.SetUnmatchedObjectsHidden(true);
             }
         }
     }

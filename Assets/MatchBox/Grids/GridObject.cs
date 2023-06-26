@@ -28,6 +28,7 @@ namespace MatchBox.Grids
 
         public event System.EventHandler<OnUpdateVisualEventArgs> OnUpdateVisualEvent;
         public event System.EventHandler<OnMoveEventArgs> OnMoveEvent;
+        public event System.EventHandler<OnHideEventArgs> OnHideEvent;
 
         public class OnUpdateVisualEventArgs : System.EventArgs
         {
@@ -58,6 +59,16 @@ namespace MatchBox.Grids
                 TargetGridPositionY = y;
 
                 SmoothTime = smoothTime;
+            }
+        }
+
+        public class OnHideEventArgs : System.EventArgs
+        {
+            public bool IsHidden { get; private set; }
+
+            public OnHideEventArgs(bool isHidden)
+            {
+                IsHidden = isHidden;
             }
         }
         #endregion
@@ -115,6 +126,11 @@ namespace MatchBox.Grids
 
             this.x = x;
             this.y = y;
+        }
+
+        public void SetVisualHidden(bool hidden)
+        {
+            OnHideEvent?.Invoke(this, new OnHideEventArgs(hidden));
         }
 
         #endregion
