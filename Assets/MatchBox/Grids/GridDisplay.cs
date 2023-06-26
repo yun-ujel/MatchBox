@@ -25,6 +25,28 @@ namespace MatchBox.Grids
 
         #endregion
 
+        #region Events
+
+        public System.EventHandler<OnMatchFoundEventArgs> OnMatchFoundEvent;
+
+        public class OnMatchFoundEventArgs : System.EventArgs
+        {
+            public GridObject[] GridObjects { get; private set; }
+            public GridObjectType Type { get; private set; }
+            public int XPos { get; private set; }
+            public int YPos { get; private set; }
+
+            public OnMatchFoundEventArgs(int x, int y, GridObjectType type, GridObject[] gridObjects)
+            {
+                XPos = x;
+                YPos = y;
+                Type = type;
+                GridObjects = gridObjects;
+            }
+        }
+
+        #endregion
+
         #endregion
 
         private void Start()
@@ -65,30 +87,36 @@ namespace MatchBox.Grids
             {
                 gridObject.MoveToPosition(x, y);
 
-                if (FindMatches(x, y, gridObject.Type, out GridObject[] matches))
+                if (FindMatches(x, y, gridObject.Type, out GridObject[] matches, true))
                 {
-                    gridObject.SetMatched(true);
                     for (int i = 0; i < matches.Length; i++)
                     {
                         matches[i].SetMatched(true);
                     }
+
+                    OnMatchFoundEvent?.Invoke(this, new OnMatchFoundEventArgs(x, y, gridObject.Type, matches));
                 }
             }
         }
 
-        public bool FindMatches(int x, int y, GridObjectType type, out GridObject[] matchingObjects)
+        public bool FindMatches(int x, int y, GridObjectType type, out GridObject[] matchingObjects, bool includeObjectAtOrigin = false)
         {
             List<GridObject> matchingObjectsList = new List<GridObject>();
             matchingObjectsList.AddRange(grid.FindMatchesInAxis(0, x, y, type));
             matchingObjectsList.AddRange(grid.FindMatchesInAxis(1, x, y, type));
 
-            matchingObjects = matchingObjectsList.ToArray();
-
             if (matchingObjectsList.Count > 0)
             {
+                if (includeObjectAtOrigin)
+                {
+                    matchingObjectsList.Add(grid.GetObject(x, y));
+                }
+
+                matchingObjects = matchingObjectsList.ToArray();
                 return true;
             }
 
+            matchingObjects = matchingObjectsList.ToArray();
             return false;
         }
 
