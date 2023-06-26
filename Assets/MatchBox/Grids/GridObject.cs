@@ -84,6 +84,12 @@ namespace MatchBox.Grids
             OnUpdateVisualEvent?.Invoke(this, new OnUpdateVisualEventArgs(Type, IsMatched));
         }
 
+        public override string ToString()
+        {
+            string matched = IsMatched ? ", Matched" : ", Unmatched";
+            return $"( {x}, {y} ), Type: {Type.Name}" + matched;
+        }
+
         #region Event Triggering Methods
         private void SetType(GridObjectType type)
         {
