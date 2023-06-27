@@ -15,30 +15,41 @@ namespace MatchBox.Sequencing.Timers
 
         [Header("Debug")]
         [SerializeField] private float displayedTimer;
+        private bool timerRunning;
 
         private void Start()
         {
             gridDisplay.OnMatchFoundEvent += OnMatchFound;
 
             displayedTimer = startTime;
+            timerRunning = true;
         }
 
         private void OnMatchFound(object sender, GridDisplay.OnMatchFoundEventArgs args)
         {
-            displayedTimer -= args.NewlyMatchedObjects.Length * timeLostPerMatch;
+            if (timerRunning)
+            {
+                displayedTimer -= args.NewlyMatchedObjects.Length * timeLostPerMatch;
+            }
         }
 
         private void Update()
         {
-            if (displayedTimer > 0f)
+            if (timerRunning)
             {
-                displayedTimer -= Time.deltaTime;
-            }
-            else
-            {
-                displayedTimer = 0f;
-                Debug.Log("Time's Up!");
-                gridDisplay.SetUnmatchedObjectsHidden(true);
+                if (displayedTimer > 0f)
+                {
+                    displayedTimer -= Time.deltaTime;
+                }
+                else
+                {
+                    displayedTimer = 0f;
+                    
+                    Debug.Log("Time's Up!");
+                    gridDisplay.CollapseGrid(true);
+
+                    timerRunning = false;
+                }
             }
         }
     }

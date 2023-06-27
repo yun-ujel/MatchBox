@@ -2,13 +2,14 @@ using UnityEngine;
 
 namespace MatchBox.Grids
 {
-    [RequireComponent(typeof(SpriteRenderer))]
+    [RequireComponent(typeof(SpriteRenderer), typeof(BoxCollider2D))]
     public class GridObjectBehaviour : MonoBehaviour
     {
         #region Parameters
 
         private GridObject child;
         private SpriteRenderer spriteRenderer;
+        private BoxCollider2D boxCollider;
 
         #region Moving
         private Vector3 targetPosition;
@@ -20,6 +21,18 @@ namespace MatchBox.Grids
         #endregion
 
         #endregion
+
+        private void Awake()
+        {
+            if (spriteRenderer == null)
+            {
+                spriteRenderer = GetComponent<SpriteRenderer>();
+            }
+            if (boxCollider == null)
+            {
+                boxCollider = GetComponent<BoxCollider2D>();
+            }
+        }
 
         private void FixedUpdate()
         {
@@ -56,17 +69,13 @@ namespace MatchBox.Grids
 
             child.OnMoveEvent += OnMove;
             child.OnUpdateVisualEvent += OnUpdateVisual;
-            child.OnHideEvent += Hide;
+            child.OnCollapseEvent += Collapse;
         }
 
-        private void Hide(object sender, GridObject.OnHideEventArgs args)
+        private void Collapse(object sender, GridObject.OnCollapseEventArgs args)
         {
-            if (spriteRenderer == null)
-            {
-                spriteRenderer = GetComponent<SpriteRenderer>();
-            }
-
-            spriteRenderer.forceRenderingOff = args.IsHidden;
+            boxCollider.enabled = args.IsCollapsed && args.IsMatched;
+            spriteRenderer.forceRenderingOff = args.IsCollapsed && !args.IsMatched;
         }
 
         private void OnMove(object sender, GridObject.OnMoveEventArgs args)
@@ -79,11 +88,6 @@ namespace MatchBox.Grids
 
         private void OnUpdateVisual(object sender, GridObject.OnUpdateVisualEventArgs args)
         {
-            if (spriteRenderer == null)
-            {
-                spriteRenderer = GetComponent<SpriteRenderer>();
-            }
-
             spriteRenderer.sprite = args.IsMatched ? args.Type.MatchedSprite : args.Type.DefaultSprite;
             spriteRenderer.color = args.Type.Color;
         }
