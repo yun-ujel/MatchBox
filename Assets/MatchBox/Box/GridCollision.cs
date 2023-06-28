@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 namespace MatchBox.Box
 {
@@ -20,26 +21,17 @@ namespace MatchBox.Box
 
         private void OnGridCollapse(object sender, GridDisplay.OnGridCollapseEventArgs args)
         {
-            if (args.IsCollapsed)
-            {
-                compositeCollider.enabled = true;
-
-                queuedGenerateGeometry = true;
-            }
-            else
-            {
-                compositeCollider.enabled = false;
-            }
+            _ = StartCoroutine(nameof(GenerateGrid));
         }
 
-        private void FixedUpdate()
+        private IEnumerator GenerateGrid()
         {
-            if (queuedGenerateGeometry)
-            {
-                Debug.Log("Generated Geometry");
+            yield return new WaitForEndOfFrame();
+            yield return new WaitForEndOfFrame();
 
-                compositeCollider.GenerateGeometry();
-            }
+            Debug.Log($"Generated Geometry");
+            compositeCollider.GenerateGeometry();
+
         }
     }
 }

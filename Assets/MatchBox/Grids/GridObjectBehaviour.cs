@@ -74,7 +74,7 @@ namespace MatchBox.Grids
 
         private void Collapse(object sender, GridObject.OnCollapseEventArgs args)
         {
-            boxCollider.enabled = args.IsCollapsed && args.IsMatched;
+            boxCollider.enabled = (args.IsCollapsed && args.IsMatched) || !args.IsCollapsed;
             spriteRenderer.forceRenderingOff = args.IsCollapsed && !args.IsMatched;
         }
 
