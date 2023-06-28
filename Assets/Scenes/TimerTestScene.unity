@@ -433,8 +433,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridDisplay: {fileID: 957882438}
-  startTime: 20
+  matchStartTime: 20
   timeLostPerMatch: 0
+  boxStartTime: 20
   displayedTimer: 0
 --- !u!66 &957882440
 CompositeCollider2D:

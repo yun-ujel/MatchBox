@@ -197,7 +197,7 @@ namespace MatchBox.Grids
             }
         }
 
-        public void CollapseGrid(bool collapsed)
+        public void CollapseGrid(bool collapsed = true)
         {
             for (int x = 0; x < grid.Width; x++)
             {
@@ -209,6 +209,12 @@ namespace MatchBox.Grids
             }
 
             OnGridCollapseEvent?.Invoke(this, new OnGridCollapseEventArgs(collapsed));
+        }
+
+        public void RestoreGrid()
+        {
+            RegenerateGrid();
+            CollapseGrid(false);
         }
 
         #endregion

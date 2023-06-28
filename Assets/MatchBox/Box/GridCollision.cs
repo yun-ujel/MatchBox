@@ -31,7 +31,6 @@ namespace MatchBox.Box
 
             Debug.Log($"Generated Geometry");
             compositeCollider.GenerateGeometry();
-
         }
     }
 }
