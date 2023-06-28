@@ -28,6 +28,7 @@ namespace MatchBox.Grids
 
         public event System.EventHandler<OnUpdateVisualEventArgs> OnUpdateVisualEvent;
         public event System.EventHandler<OnMoveEventArgs> OnMoveEvent;
+        public event System.EventHandler<OnCollapseEventArgs> OnCollapseEvent;
 
         public class OnUpdateVisualEventArgs : System.EventArgs
         {
@@ -58,6 +59,18 @@ namespace MatchBox.Grids
                 TargetGridPositionY = y;
 
                 SmoothTime = smoothTime;
+            }
+        }
+
+        public class OnCollapseEventArgs : System.EventArgs
+        {
+            public bool IsCollapsed { get; private set; }
+            public bool IsMatched { get; private set; }
+
+            public OnCollapseEventArgs(bool isCollapsed, bool isMatched)
+            {
+                IsCollapsed = isCollapsed;
+                IsMatched = isMatched;
             }
         }
         #endregion
@@ -115,6 +128,11 @@ namespace MatchBox.Grids
 
             this.x = x;
             this.y = y;
+        }
+
+        public void SetParentCollapsed(bool collapsed)
+        {
+            OnCollapseEvent?.Invoke(this, new OnCollapseEventArgs(collapsed, IsMatched));
         }
 
         #endregion

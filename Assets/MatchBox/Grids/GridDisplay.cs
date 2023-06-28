@@ -42,10 +42,21 @@ namespace MatchBox.Grids
         {
             public Grid<GridObject> grid;
         }
+        public class OnGridCollapseEventArgs : System.EventArgs
+        {
+            public bool IsCollapsed { get; private set; }
+
+            public OnGridCollapseEventArgs(bool isCollapsed)
+            {
+                IsCollapsed = isCollapsed;
+            }
+        }
 
 
         public event System.EventHandler<SetGridEventArgs> OnSetGridEvent;
         public event System.EventHandler<OnMatchFoundEventArgs> OnMatchFoundEvent;
+        
+        public event System.EventHandler<OnGridCollapseEventArgs> OnGridCollapseEvent;
 
         #endregion
 
@@ -184,6 +195,26 @@ namespace MatchBox.Grids
                     grid.SetObject(x, y, gridCopy[x, y]);
                 }
             }
+        }
+
+        public void CollapseGrid(bool collapsed = true)
+        {
+            for (int x = 0; x < grid.Width; x++)
+            {
+                for (int y = 0; y < grid.Height; y++)
+                {
+                    GridObject gridObject = grid.GetObject(x, y);
+                    gridObject.SetParentCollapsed(collapsed);
+                }
+            }
+
+            OnGridCollapseEvent?.Invoke(this, new OnGridCollapseEventArgs(collapsed));
+        }
+
+        public void RestoreGrid()
+        {
+            RegenerateGrid();
+            CollapseGrid(false);
         }
 
         #endregion
