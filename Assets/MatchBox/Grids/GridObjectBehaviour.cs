@@ -11,6 +11,8 @@ namespace MatchBox.Grids
         private SpriteRenderer spriteRenderer;
         private BoxCollider2D boxCollider;
 
+        private bool isCollapsed;
+
         #region Moving
         private Vector3 targetPosition;
         private Vector3 velocity;
@@ -52,6 +54,7 @@ namespace MatchBox.Grids
                 }
                 else
                 {
+                    transform.position = targetPosition;
                     isMoving = false;
                 }
             }
@@ -74,8 +77,9 @@ namespace MatchBox.Grids
 
         private void Collapse(object sender, GridObject.OnCollapseEventArgs args)
         {
-            boxCollider.enabled = (args.IsCollapsed && args.IsMatched) || !args.IsCollapsed;
-            spriteRenderer.forceRenderingOff = args.IsCollapsed && !args.IsMatched;
+            isCollapsed = args.IsCollapsed;
+
+            HideOrShowVisual(isCollapsed, args.IsMatched);
         }
 
         private void OnMove(object sender, GridObject.OnMoveEventArgs args)
@@ -90,6 +94,14 @@ namespace MatchBox.Grids
         {
             spriteRenderer.sprite = args.IsMatched ? args.Type.MatchedSprite : args.Type.DefaultSprite;
             spriteRenderer.color = args.Type.Color;
+
+            HideOrShowVisual(isCollapsed, args.IsMatched);
+        }
+
+        private void HideOrShowVisual(bool isCollapsed, bool isMatched)
+        {
+            boxCollider.enabled = (isCollapsed && isMatched) || !isCollapsed;
+            spriteRenderer.forceRenderingOff = isCollapsed && !isMatched;
         }
     }
 }

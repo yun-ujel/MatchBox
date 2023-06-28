@@ -224,12 +224,15 @@ namespace MatchBox.Grids
             #region Select Type
             if (validTypes.Length < 1)
             {
+                SetMatched(true);
                 SetType(Settings.types[0]);
                 Debug.Log($"( {x}, {y} ): Failed to find a type that wouldn't match");
+                return;
             }
 
             int selection = Random.Range(0, validTypes.Length);
 
+            SetMatched(false);
             SetType(validTypes[selection]);
             #endregion
 
