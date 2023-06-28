@@ -13,7 +13,7 @@ namespace MatchBox.Grids
 
         #region Grid
 
-        private Grid<GridObject> grid;
+        public Grid<GridObject> Grid { get; private set; }
 
         [SerializeField] private GridObjectSettings settings;
 
@@ -38,10 +38,6 @@ namespace MatchBox.Grids
                 NewlyMatchedObjects = newlyMatchedObjects;
             }
         }
-        public class SetGridEventArgs : System.EventArgs
-        {
-            public Grid<GridObject> grid;
-        }
         public class OnGridCollapseEventArgs : System.EventArgs
         {
             public bool IsCollapsed { get; private set; }
@@ -52,8 +48,6 @@ namespace MatchBox.Grids
             }
         }
 
-
-        public event System.EventHandler<SetGridEventArgs> OnSetGridEvent;
         public event System.EventHandler<OnMatchFoundEventArgs> OnMatchFoundEvent;
         
         public event System.EventHandler<OnGridCollapseEventArgs> OnGridCollapseEvent;
@@ -62,15 +56,14 @@ namespace MatchBox.Grids
 
         #endregion
 
-        private void Start()
+        private void Awake()
         {
             settings.GridParentTransform = transform;
 
             GridObject.Settings = settings;
             GridObjectUtils.Settings = settings;
 
-            grid = new Grid<GridObject>(9, 9, 1f, Vector2.one * -4.5f, GridObject.create);
-            OnSetGridEvent?.Invoke(this, new SetGridEventArgs { grid = grid });
+            Grid = new Grid<GridObject>(9, 9, 1f, Vector2.one * -4.5f, GridObject.create);
         }
 
         private void AddToMatchedObjects(GridObject[] add, out GridObject[] newObjects)
@@ -102,13 +95,13 @@ namespace MatchBox.Grids
         #region Singular Grid Objects
         public bool SwapObjects(int xPos1, int yPos1, int xPos2, int yPos2)
         {
-            GridObject object1 = grid.GetObject(xPos1, yPos1);
-            GridObject object2 = grid.GetObject(xPos2, yPos2);
+            GridObject object1 = Grid.GetObject(xPos1, yPos1);
+            GridObject object2 = Grid.GetObject(xPos2, yPos2);
 
             if ((!object1.IsMatched && !object2.IsMatched) || settings.AllowMovingOfMatchedObjects)
             {
-                grid.SetObject(xPos1, yPos1, object2); /* Put Object 2 in Object 1's Position */
-                grid.SetObject(xPos2, yPos2, object1); /* Put Object 1 in Object 2's Position */
+                Grid.SetObject(xPos1, yPos1, object2); /* Put Object 2 in Object 1's Position */
+                Grid.SetObject(xPos2, yPos2, object1); /* Put Object 1 in Object 2's Position */
 
                 MoveGridObject(object2, xPos1, yPos1);
                 MoveGridObject(object1, xPos2, yPos2);
@@ -141,14 +134,14 @@ namespace MatchBox.Grids
         public bool FindMatches(int x, int y, GridObjectType type, out GridObject[] matchingObjects, bool includeObjectAtOrigin = false)
         {
             List<GridObject> matchingObjectsList = new List<GridObject>();
-            matchingObjectsList.AddRange(grid.FindMatchesInAxis(0, x, y, type));
-            matchingObjectsList.AddRange(grid.FindMatchesInAxis(1, x, y, type));
+            matchingObjectsList.AddRange(Grid.FindMatchesInAxis(0, x, y, type));
+            matchingObjectsList.AddRange(Grid.FindMatchesInAxis(1, x, y, type));
 
             if (matchingObjectsList.Count > 0)
             {
                 if (includeObjectAtOrigin)
                 {
-                    matchingObjectsList.Add(grid.GetObject(x, y));
+                    matchingObjectsList.Add(Grid.GetObject(x, y));
                 }
 
                 matchingObjects = matchingObjectsList.ToArray();
@@ -169,41 +162,41 @@ namespace MatchBox.Grids
         #region Full Grid
         public void RegenerateGrid()
         {
-            GridObject[,] gridCopy = new GridObject[grid.Width, grid.Height];
+            GridObject[,] gridCopy = new GridObject[Grid.Width, Grid.Height];
 
-            for (int x = 0; x < grid.Width; x++)
+            for (int x = 0; x < Grid.Width; x++)
             {
-                for (int y = 0; y < grid.Height; y++)
+                for (int y = 0; y < Grid.Height; y++)
                 {
-                    gridCopy[x, y] = grid.GetObject(x, y);
+                    gridCopy[x, y] = Grid.GetObject(x, y);
                     if (!gridCopy[x, y].IsMatched)
                     {
-                        grid.SetObject(x, y, null);
+                        Grid.SetObject(x, y, null);
                     }
                 }
             }
 
-            for (int x = 0; x < grid.Width; x++)
+            for (int x = 0; x < Grid.Width; x++)
             {
-                for (int y = 0; y < grid.Height; y++)
+                for (int y = 0; y < Grid.Height; y++)
                 {
                     if (gridCopy[x, y].IsMatched)
                     {
                         continue;
                     }
                     gridCopy[x, y].Regenerate();
-                    grid.SetObject(x, y, gridCopy[x, y]);
+                    Grid.SetObject(x, y, gridCopy[x, y]);
                 }
             }
         }
 
         public void CollapseGrid(bool collapsed = true)
         {
-            for (int x = 0; x < grid.Width; x++)
+            for (int x = 0; x < Grid.Width; x++)
             {
-                for (int y = 0; y < grid.Height; y++)
+                for (int y = 0; y < Grid.Height; y++)
                 {
-                    GridObject gridObject = grid.GetObject(x, y);
+                    GridObject gridObject = Grid.GetObject(x, y);
                     gridObject.SetParentCollapsed(collapsed);
                 }
             }

@@ -61,16 +61,10 @@ namespace MatchBox.Grids
         #endregion
 
         #endregion
-        private void SetGrid(object sender, GridDisplay.SetGridEventArgs args)
-        {
-            grid = args.grid;
 
-            gridDisplay.OnSetGridEvent -= SetGrid;
-        }
-
-        private void Awake()
+        private void Start()
         {
-            gridDisplay.OnSetGridEvent += SetGrid;
+            grid = gridDisplay.Grid;
         }
 
         private void Update()
