@@ -48,9 +48,19 @@ namespace MatchBox.Grids
             }
         }
 
+        public class OnGridObjectRegeneratedEventArgs : System.EventArgs
+        {
+            public OnGridObjectRegeneratedEventArgs()
+            {
+
+            }
+        }
+
         public event System.EventHandler<OnMatchFoundEventArgs> OnMatchFoundEvent;
-        
+
         public event System.EventHandler<OnGridCollapseEventArgs> OnGridCollapseEvent;
+
+        public event System.EventHandler<OnGridObjectRegeneratedEventArgs> OnGridObjectRegeneratedEvent;
 
         #endregion
 
@@ -105,7 +115,7 @@ namespace MatchBox.Grids
 
                 MoveGridObject(object2, xPos1, yPos1);
                 MoveGridObject(object1, xPos2, yPos2);
-                
+
                 return true;
             }
             else
@@ -156,6 +166,16 @@ namespace MatchBox.Grids
         {
             return SwapObjects(pos1.x, pos1.y, pos2.x, pos2.y);
         }
+
+        public void RegenerateGridObjects(params GridObject[] gridObjects)
+        {
+            for (int i = 0; i < gridObjects.Length; i++)
+            {
+                gridObjects[i]?.Regenerate();
+            }
+
+            OnGridObjectRegeneratedEvent?.Invoke(this, new OnGridObjectRegeneratedEventArgs());
+        }
         #endregion
 
 
@@ -188,6 +208,8 @@ namespace MatchBox.Grids
                     Grid.SetObject(x, y, gridCopy[x, y]);
                 }
             }
+
+            OnGridObjectRegeneratedEvent?.Invoke(this, new OnGridObjectRegeneratedEventArgs());
         }
 
         public void CollapseGrid(bool collapsed = true)

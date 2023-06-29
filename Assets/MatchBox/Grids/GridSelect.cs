@@ -11,6 +11,7 @@ namespace MatchBox.Grids
         private Grid<GridObject> grid;
 
         [SerializeField] private GridDisplay gridDisplay;
+        private bool isCollapsed;
 
         #region Navigation
         [Header("Navigation")]
@@ -60,18 +61,43 @@ namespace MatchBox.Grids
 
         #endregion
 
+        public event System.EventHandler<OnHideEventArgs> OnHideEvent;
+
+        public class OnHideEventArgs : System.EventArgs
+        {
+            public bool IsHidden { get; private set; }
+            
+            public OnHideEventArgs(bool isHidden)
+            {
+                IsHidden = isHidden;
+            }
+        }
+
         #endregion
 
         private void Start()
         {
             grid = gridDisplay.Grid;
+
+            gridDisplay.OnGridCollapseEvent += OnCollapse;
+        }
+
+        private void OnCollapse(object sender, GridDisplay.OnGridCollapseEventArgs args)
+        {
+            SetSelected(false);
+            isCollapsed = args.IsCollapsed;
+
+            OnHideEvent?.Invoke(this, new OnHideEventArgs(args.IsCollapsed));
         }
 
         private void Update()
         {
-            timeSinceLastMove += Vector2.one * Time.deltaTime;
+            if (!isCollapsed)
+            {
+                timeSinceLastMove += Vector2.one * Time.deltaTime;
 
-            ProcessNavigation();
+                ProcessNavigation();
+            }
         }
         
         #region Interaction Methods (Swap / Selection)
@@ -94,18 +120,21 @@ namespace MatchBox.Grids
         }
         private void SetSelected(bool selected)
         {
-            isSelected = selected;
-
-            if (selected)
+            if (!isCollapsed)
             {
-                OnMoveEvent += SwapOnMove;
-            }
-            else
-            {
-                OnMoveEvent -= SwapOnMove;
-            }
+                isSelected = selected;
 
-            OnSelectEvent?.Invoke(this, new OnSelectEventArgs(selected));
+                if (selected)
+                {
+                    OnMoveEvent += SwapOnMove;
+                }
+                else
+                {
+                    OnMoveEvent -= SwapOnMove;
+                }
+
+                OnSelectEvent?.Invoke(this, new OnSelectEventArgs(selected));
+            }
         }
 
         private void SwapOnMove(object sender, OnMoveEventArgs args)
@@ -197,7 +226,7 @@ namespace MatchBox.Grids
         }
         #endregion
 
-        #region Input Methods
+        #region Input Events
         public void Point(InputAction.CallbackContext ctx)
         {
             if (!ctx.performed) { return; }

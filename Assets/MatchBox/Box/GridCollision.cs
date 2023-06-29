@@ -17,6 +17,12 @@ namespace MatchBox.Box
         private void Start()
         {
             gridDisplay.OnGridCollapseEvent += OnGridCollapse;
+            gridDisplay.OnGridObjectRegeneratedEvent += OnObjectRegenerated;
+        }
+
+        private void OnObjectRegenerated(object sender, GridDisplay.OnGridObjectRegeneratedEventArgs args)
+        {
+            _ = StartCoroutine(nameof(GenerateGrid));
         }
 
         private void OnGridCollapse(object sender, GridDisplay.OnGridCollapseEventArgs args)

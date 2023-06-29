@@ -70,13 +70,7 @@ namespace MatchBox.Box.Capabilities
 
                 GridObject[] hitObjects = GetGridObjectsHit();
 
-                if (hitObjects != null)
-                {
-                    for (int i = 0; i < hitObjects.Length; i++)
-                    {
-                        hitObjects[i].Regenerate();
-                    }
-                }
+                gridDisplay.RegenerateGridObjects(hitObjects);
             }
         }
 
@@ -90,9 +84,6 @@ namespace MatchBox.Box.Capabilities
             Vector2 smashWorldPosMax = lastSmashCenter + (Vector2.one * smashRadius);
             Vector2 smashWorldPosMin = lastSmashCenter + (Vector2.one * -smashRadius);
 
-            Debug.Log($"World Smash Pos Max X: {smashWorldPosMax.x} / {grid.CellSize} = {smashWorldPosMax.x / grid.CellSize}");
-            Debug.Log($"World Smash Pos Max X: {smashWorldPosMax.y} / {grid.CellSize} = {smashWorldPosMax.y / grid.CellSize}");
-
             Debug.DrawLine(smashWorldPosMin, smashWorldPosMax, Color.red, 1f);
 
             Vector2Int smashGridPosMax = grid.WorldToGridPosition(smashWorldPosMax);
@@ -104,7 +95,7 @@ namespace MatchBox.Box.Capabilities
 
                 for (int x = smashGridPosMin.x; x <= smashGridPosMax.x; x++)
                 {
-                    for (int y = smashGridPosMin.y; y < smashGridPosMax.y; y++)
+                    for (int y = smashGridPosMin.y; y <= smashGridPosMax.y; y++)
                     {
                         Debug.Log($"Hitting Grid Object at ( {x}, {y} )");
 

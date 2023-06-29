@@ -33,6 +33,13 @@ namespace MatchBox.Grids
         {
             gridSelect.OnMoveEvent += OnMove;
             gridSelect.OnSelectEvent += OnSelect;
+
+            gridSelect.OnHideEvent += OnHide;
+        }
+
+        private void OnHide(object sender, GridSelect.OnHideEventArgs args)
+        {
+            spriteRenderer.forceRenderingOff = args.IsHidden;
         }
 
         private void OnSelect(object sender, GridSelect.OnSelectEventArgs args)
